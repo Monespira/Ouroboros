@@ -152,10 +152,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             
             {activeTab === "forum" ? (
               <a href="#novo-post">
-                <Button variant="default" size="sm">Nova publicação</Button>
+                <Button variant="primary" size="sm">Nova publicação</Button>
               </a>
             ) : (
-              <Button variant="default" size="sm" onClick={() => setCreateOpen(true)}>
+              <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus size={16} className="mr-2" /> Novo Projeto
               </Button>
             )}
@@ -178,7 +178,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 
                 {/* BOTÃO INTERNO DE CADASTRO DE PROJETO */}
                 <Button 
-                  variant="default" 
+                  variant="primary" 
                   onClick={() => setCreateOpen(true)}
                   className="w-full sm:w-auto"
                 >
