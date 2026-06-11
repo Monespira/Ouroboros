@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #f6f7f9;
+  --foreground: #141414;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --border: #dfe3e8;
+  --accent: #ff4500;
+  --accent-2: #2563eb;
+  --success: #16a34a;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0d0f12;
+  --foreground: #eef2f6;
+  --card: #15181d;
+  --muted: #9aa4b2;
+  --border: #252b33;
+  --accent: #ff6a2a;
+  --accent-2: #60a5fa;
+  --success: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted), transparent 45%);
+  border-radius: 999px;
+}
+
+.surface {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.grid-pattern {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border), transparent 65%) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border), transparent 65%) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
