@@ -3,16 +3,18 @@
 :root {
   color-scheme: light;
 
-  --background: #f7f9ff;
-  --foreground: #17213c;
+  --background: #f4f7ff;
+  --foreground: #102550;
 
   --card: #ffffff;
-  --muted: #667085;
-  --border: #d9e2f3;
+  --muted: #61708f;
+  --border: #d8e3f7;
 
-  --accent: #5c2bb8;
-  --accent-blue: #0767b1;
-  --accent-2: #f58220;
+  --accent: #4b2872;
+  --accent-blue: #24599a;
+  --accent-2: #ff6b00;
+  --accent-soft: #eef4ff;
+  --brand-white: #ffffff;
 
   --success: #0f9f6e;
 }
@@ -20,16 +22,18 @@
 .dark {
   color-scheme: dark;
 
-  --background: #121633;
+  --background: #101735;
   --foreground: #f8f9ff;
 
-  --card: #191f42;
-  --muted: #b8c0d9;
-  --border: #313a69;
+  --card: #171d40;
+  --muted: #bac4dd;
+  --border: #303a66;
 
-  --accent: #8d65ff;
-  --accent-blue: #4ea7f5;
-  --accent-2: #fb923c;
+  --accent: #7e4bc2;
+  --accent-blue: #77b8ff;
+  --accent-2: #ff8a2a;
+  --accent-soft: #17254d;
+  --brand-white: #ffffff;
 
   --success: #22c55e;
 }
@@ -41,13 +45,17 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    linear-gradient(180deg, #ffffff 0%, var(--background) 42%, #eef4ff 100%);
+    radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--accent-2), transparent 84%) 0 170px, transparent 260px),
+    radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--accent-blue), transparent 82%) 0 220px, transparent 340px),
+    linear-gradient(180deg, #ffffff 0%, var(--background) 48%, #eef4ff 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 .dark body {
   background:
+    radial-gradient(circle at 80% 12%, color-mix(in srgb, var(--accent-2), transparent 86%) 0 150px, transparent 260px),
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent-blue), transparent 78%) 0 220px, transparent 360px),
     linear-gradient(180deg, #171c3d 0%, var(--background) 48%, #10142d 100%);
 }
 
@@ -75,7 +83,7 @@ button {
 .surface {
   background: var(--card);
   border-color: var(--border);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-blue), transparent 92%);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--accent-blue), transparent 90%);
 }
 
 .text-muted {
@@ -84,7 +92,13 @@ button {
 
 .grid-pattern {
   background-image:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-2), transparent 72%), transparent 180px),
     linear-gradient(color-mix(in srgb, var(--accent-blue), transparent 88%) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in srgb, var(--accent), transparent 90%) 1px, transparent 1px);
   background-size: 34px 34px;
+}
+
+.brand-gradient {
+  background:
+    linear-gradient(135deg, var(--accent) 0%, #3d2570 42%, var(--accent-blue) 100%);
 }

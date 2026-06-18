@@ -1,50 +1,70 @@
-# 🚀 Scrum CIEE - Sistema de Gerenciamento
+# SCRUB | CIEE Rio
 
-## 📋 Sobre o Projeto
+Sistema web para gerenciamento de ideias, projetos, tarefas, reuniões e colaboração com fluxo inspirado em Scrum e metodologia ágil.
 
-O **Scrum CIEE** é um sistema desenvolvido com o objetivo de otimizar processos, centralizar o gerenciamento de demandas e aplicar de forma prática o framework metodológico **Scrum**. Criado no contexto de cooperação e aprendizado do Centro de Integração Empresa-Escola (CIEE), o sistema visa facilitar a comunicação, o acompanhamento de tarefas (Sprints) e a entrega contínua de valor.
+## Estrutura
 
----
+```text
+Scrum-ciee/
+  Frontend/   Aplicação Next.js pronta para Vercel
+  Backend/    API Express/Prisma separada, opcional para uma próxima etapa
+```
 
-## 🛠️ Tecnologias Utilizadas
+O deploy principal do sistema deve usar a pasta `Frontend`, que contém a interface atual do SCRUB.
 
-*(Customize esta seção com as tecnologias reais do seu projeto)*
+## Rodar Localmente
 
-- **Frontend:** HTML5, CSS3, JavaScript / React / Angular
-- **Backend:** Node.js / Java / .NET / PHP
-- **Banco de Dados:** MySQL / PostgreSQL / MongoDB
-- **Ferramentas:** Git, GitHub, Kanban / GitHub Projects
+```powershell
+cd Frontend
+npm install
+npm run dev
+```
 
----
+Acesse:
 
-## 👥 Estrutura do Time (Scrum Roles)
+```text
+http://localhost:3000
+```
 
-* **Product Owner (PO):** SCRUB
-* **Developers:**
-  * [Samuel-Devx](https://github.com/Samuel-Devx)
-  * [Zimbra](https://github.com/GZimbra)
+## Validar Antes do Deploy
 
+```powershell
+cd Frontend
+npm run typecheck
+npm run build
+```
 
----
+## Deploy na Vercel
 
-## 🔄 Nosso Processo Scrum
+1. Suba este repositório para o GitHub.
+2. Na Vercel, clique em `Add New Project`.
+3. Importe o repositório.
+4. Configure:
+   - `Framework Preset`: Next.js
+   - `Root Directory`: `Frontend`
+   - `Install Command`: `npm install`
+   - `Build Command`: `npm run build`
+   - `Output Directory`: deixe vazio, a Vercel detecta o Next.js
+5. Clique em `Deploy`.
 
-O projeto é gerenciado seguindo ciclos incrementais e rituais do framework Scrum:
+O arquivo `Frontend/vercel.json` já registra os comandos principais para a Vercel.
 
-1. **Product Backlog:** Listagem e refinamento de todas as funcionalidades e requisitos do sistema.
-2. **Sprint Planning:** Reunião de planejamento para definir o objetivo da Sprint atual e selecionar as tarefas prioritárias.
-3. **Daily Scrum:** Alinhamentos diários rápidos para acompanhar o progresso e remover impedimentos.
-4. **Sprint Review & Retrospective:** Apresentação do software funcional ao final de cada ciclo e análise de melhorias para a próxima Sprint.
+## Variáveis de Ambiente
 
----
+A interface atual não depende de variáveis obrigatórias para abrir na Vercel.
 
-## 🚀 Como Executar o Projeto
+O arquivo `Frontend/.env.example` mantém `DATABASE_URL` apenas para scripts Prisma locais ou uma futura integração com banco. Se você for ativar persistência com Prisma, configure uma URL PostgreSQL real na Vercel.
 
-### 🔧 Pré-requisitos
-Antes de começar, você vai precisar ter instalado em sua máquina as ferramentas básicas de desenvolvimento (como o [Git](https://git-scm.com/) e o ambiente correspondente à sua stack, por exemplo, o [Node.js](https://nodejs.org/)).
+## Backend
 
-### 💻 Passo a Passo
+A pasta `Backend` contém uma API Express já compilada em `dist`, mas ela não é necessária para o frontend atual funcionar. Para produção completa com API e banco, recomenda-se hospedar o backend separadamente, por exemplo em Render, Railway, Fly.io ou outro serviço Node, e depois conectar o frontend por uma variável `NEXT_PUBLIC_API_URL`.
 
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/Samuel-Devx/Scrum-ciee.git](https://github.com/Samuel-Devx/Scrum-ciee.git)
+## Scripts do Frontend
+
+```text
+npm run dev        inicia o Next.js localmente
+npm run build      gera o build de produção
+npm run start      executa o build de produção
+npm run lint       valida TypeScript
+npm run typecheck  valida TypeScript
+```

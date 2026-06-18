@@ -8,14 +8,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export type ScrumStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-export type PostKind = "Discussao" | "Ideia" | "Problema" | "Sugestao" | "Atualizacao" | "Documentacao";
+export type PostKind = "Discussão" | "Ideia" | "Problema" | "Sugestão" | "Atualização" | "Documentação";
 export type PostVote = 1 | -1;
 
 export type ScrumTask = {
   id: string;
   title: string;
   status: ScrumStatus;
-  priority: "Baixa" | "Media" | "Alta" | "Critica";
+  priority: "Baixa" | "Média" | "Alta" | "Crítica";
   points: number;
 };
 
@@ -55,13 +55,13 @@ export const forumUsers: ForumUser[] = [
   { id: "carla", name: "Carla Mendes", initials: "CM" },
 ];
 const categories = ["Engenharia", "Produto", "Design", "Marketing", "RH", "Geral"];
-const kinds: PostKind[] = ["Discussao", "Ideia", "Problema", "Sugestao", "Atualizacao", "Documentacao"];
+const kinds: PostKind[] = ["Discussão", "Ideia", "Problema", "Sugestão", "Atualização", "Documentação"];
 const columns: Array<{ id: ScrumStatus; label: string }> = [
   { id: "BACKLOG", label: "Backlog" },
-  { id: "TODO", label: "To Do" },
-  { id: "IN_PROGRESS", label: "In Progress" },
-  { id: "REVIEW", label: "Review" },
-  { id: "DONE", label: "Done" },
+  { id: "TODO", label: "A fazer" },
+  { id: "IN_PROGRESS", label: "Em andamento" },
+  { id: "REVIEW", label: "Revisão" },
+  { id: "DONE", label: "Concluído" },
 ];
 
 export function ForumLanding({
@@ -85,7 +85,7 @@ export function ForumLanding({
     title: "",
     body: "",
     category: "Engenharia",
-    kind: "Discussao" as PostKind,
+    kind: "Discussão" as PostKind,
   });
   const visiblePosts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -131,7 +131,7 @@ export function ForumLanding({
           id: crypto.randomUUID(),
           title: "Refinar proposta",
           status: "BACKLOG",
-          priority: "Media",
+          priority: "Média",
           points: 3,
         },
         {
@@ -146,7 +146,7 @@ export function ForumLanding({
 
     onCreatePost(post);
     setExpandedPostId(post.id);
-    setDraft({ title: "", body: "", category: "Engenharia", kind: "Discussao" });
+    setDraft({ title: "", body: "", category: "Engenharia", kind: "Discussão" });
   }
 
   function updatePost(postId: string, updater: (post: ForumPost) => ForumPost) {
@@ -166,14 +166,14 @@ export function ForumLanding({
             <CardHeader className="grid-pattern p-5 md:p-6">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
                 <div className="min-w-0">
-                  <Badge tone="orange">Forum + Scrum</Badge>
-                  <h2 className="mt-3 text-2xl font-black tracking-normal md:text-3xl">Crie posts com painel Scrum proprio</h2>
+                  <Badge tone="orange">SCRUB CIEE Rio</Badge>
+                  <h2 className="mt-3 text-2xl font-black leading-tight tracking-normal md:text-3xl">Transforme ideias em sprints colaborativas</h2>
                   <p className="mt-2 max-w-2xl text-sm text-muted">
-                    A landing page agora e apenas o forum. Cada publicacao vira um pequeno projeto com tarefas,
-                    colunas Scrum, votos, comentarios e solicitacoes de participacao.
+                    O programa SCRUB conecta fórum, backlog e acompanhamento Scrum em um painel com visual CIEE Rio,
+                    usando azul, branco, roxo e detalhes em laranja para orientar prioridades.
                   </p>
                 </div>
-                <div className="grid grid-cols-3 gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center shadow-sm">
+                <div className="grid grid-cols-3 gap-2 rounded-lg border border-white/70 bg-white/90 p-2 text-center shadow-sm sm:p-3">
                   <Stat label="Posts" value={posts.length} />
                   <Stat label="Tarefas" value={posts.reduce((total, post) => total + post.tasks.length, 0)} />
                   <Stat label="Votos" value={posts.reduce((total, post) => total + post.score, 0)} />
@@ -183,22 +183,22 @@ export function ForumLanding({
             <CardContent className="p-4 md:p-5">
               <form className="grid gap-3" onSubmit={createPost}>
                 <div className="rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-muted dark:bg-white/[0.03]">
-                  <p className="text-sm text-muted">Usuario ativo: <strong className="text-[var(--foreground)]">{currentUser.name}</strong></p>
+                  <p className="text-sm text-muted">Usuário ativo no SCRUB: <strong className="text-[var(--foreground)]">{currentUser.name}</strong></p>
                 </div>
-                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:gap-3">
                   <Avatar label={currentUser.initials} />
                   <input
                     value={draft.title}
                     onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))}
                     className="h-11 min-w-0 flex-1 rounded-md border border-[var(--border)] bg-transparent px-3 outline-none focus:border-[var(--accent-2)]"
-                    placeholder="Titulo do post"
+                    placeholder="Título da iniciativa"
                   />
                 </div>
                 <textarea
                   value={draft.body}
                   onChange={(event) => setDraft((value) => ({ ...value, body: event.target.value }))}
                   className="min-h-24 rounded-md border border-[var(--border)] bg-transparent p-3 outline-none focus:border-[var(--accent-2)]"
-                  placeholder="Descreva a discussao, ideia, problema ou atualizacao"
+                  placeholder="Descreva a discussão, ideia, problema ou atualização do programa"
                 />
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_130px]">
                   <select
@@ -252,8 +252,8 @@ export function ForumLanding({
                     className={cn(
                       "h-9 whitespace-nowrap rounded-full border px-3 text-sm font-bold",
                       activeCategory === category
-                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                        : "border-[var(--border)] text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+                        ? "border-[var(--accent-2)] bg-[var(--accent-2)] text-white shadow-sm shadow-orange-900/10"
+                        : "border-[var(--border)] text-muted hover:bg-[var(--accent-soft)] hover:text-[var(--accent-blue)]",
                     )}
                     onClick={() => setActiveCategory(category)}
                   >
@@ -268,7 +268,9 @@ export function ForumLanding({
             <Card>
               <CardContent className="grid min-h-72 place-items-center text-center">
                 <div>
-                  <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-lg border border-[var(--border)] text-2xl">◎</div>
+                  <div className="mx-auto mb-4 grid h-14 w-14 place-items-center overflow-hidden rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-sm">
+                    <img src="/scrub-icon.png" alt="Ícone SCRUB" className="h-full w-full object-contain" />
+                  </div>
                   <h3 className="text-xl font-black">Nenhum post ainda</h3>
                   <p className="mt-2 max-w-md text-sm text-muted">
                     Os dados criados foram removidos. Publique o primeiro post para gerar automaticamente o painel Scrum dele.
@@ -302,7 +304,7 @@ export function ForumLanding({
               <p>1. Publique um post.</p>
               <p>2. Abra o painel Scrum do post.</p>
               <p>3. Solicite entrada quando quiser participar do projeto.</p>
-              <p>4. O criador aprova ou recusa as solicitacoes.</p>
+              <p>4. O criador aprova ou recusa as solicitações.</p>
             </CardContent>
           </Card>
 
@@ -401,37 +403,37 @@ function PostCard({
   }
 
   return (
-    <article className="grid grid-cols-[44px_minmax(0,1fr)] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm md:grid-cols-[50px_minmax(0,1fr)]">
-      <div className="flex flex-col items-center gap-1 bg-black/[0.03] py-4 dark:bg-white/[0.04]">
+    <article className="grid grid-cols-[40px_minmax(0,1fr)] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm shadow-blue-950/[0.04] sm:grid-cols-[44px_minmax(0,1fr)] md:grid-cols-[50px_minmax(0,1fr)]">
+      <div className="brand-gradient flex flex-col items-center gap-1 py-4 text-white">
         <button
           className={cn(
             "grid h-7 w-7 place-items-center rounded-md border text-sm font-black transition",
             currentVote === 1
-              ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm"
-              : "border-transparent text-muted hover:bg-black/[0.05] hover:text-[var(--accent)] dark:hover:bg-white/[0.08]",
+              ? "border-white bg-white text-[var(--accent)] shadow-sm"
+              : "border-transparent text-white/70 hover:bg-white/10 hover:text-white",
           )}
           onClick={() => vote(1)}
           aria-pressed={currentVote === 1}
           title={currentVote === 1 ? "Upvote selecionado" : "Dar upvote"}
         >
-          ▲
+          ^
         </button>
-        <strong className="text-sm">{post.score}</strong>
+        <strong className="text-sm text-white">{post.score}</strong>
         <button
           className={cn(
             "grid h-7 w-7 place-items-center rounded-md border text-sm font-black transition",
             currentVote === -1
-              ? "border-blue-500 bg-blue-500 text-white shadow-sm"
-              : "border-transparent text-muted hover:bg-black/[0.05] hover:text-blue-500 dark:hover:bg-white/[0.08]",
+              ? "border-white bg-white text-[var(--accent-blue)] shadow-sm"
+              : "border-transparent text-white/70 hover:bg-white/10 hover:text-white",
           )}
           onClick={() => vote(-1)}
           aria-pressed={currentVote === -1}
           title={currentVote === -1 ? "Downvote selecionado" : "Dar downvote"}
         >
-          ▼
+          v
         </button>
       </div>
-      <div className="min-w-0 p-4 md:p-5">
+      <div className="min-w-0 p-3 sm:p-4 md:p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <Badge tone="orange">{post.kind}</Badge>
           <span className="font-bold text-[var(--foreground)]">/{post.category.toLowerCase()}</span>
@@ -444,19 +446,23 @@ function PostCard({
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onToggle}>{expanded ? "Ocultar Scrum" : "Abrir Scrum"}</Button>
-          <Button variant="ghost" size="sm">{post.comments.length} comentarios</Button>
+          <Button variant="ghost" size="sm">{post.comments.length} comentários</Button>
           {!isCreator && !isMember && !currentRequest && (
-            <Button variant="outline" size="sm" onClick={requestParticipation}>Solicitar participacao</Button>
+            <Button variant="outline" size="sm" onClick={requestParticipation}>Solicitar participação</Button>
           )}
-          {!isCreator && currentRequest && <Badge tone="blue">Solicitacao enviada</Badge>}
+          {!isCreator && currentRequest && <Badge tone="blue">Solicitação enviada</Badge>}
           {!isCreator && isMember && <Badge tone="green">Participando</Badge>}
-          {isCreator && post.requests.length > 0 && <Badge tone="violet">{post.requests.length} solicitacao{post.requests.length === 1 ? "" : "es"}</Badge>}
+          {isCreator && post.requests.length > 0 && (
+            <Badge tone="violet">
+              {post.requests.length} {post.requests.length === 1 ? "solicitação" : "solicitações"}
+            </Badge>
+          )}
           {isCreator && <Button variant="ghost" size="sm" onClick={onDelete}>Excluir</Button>}
         </div>
 
         {isCreator && post.requests.length > 0 && (
           <div className="mt-3 space-y-2 rounded-md border border-[var(--border)] bg-black/[0.02] p-3 dark:bg-white/[0.03]">
-            <p className="text-xs font-bold uppercase text-muted">Solicitacoes para participar</p>
+            <p className="text-xs font-bold uppercase text-muted">Solicitações para participar</p>
             {post.requests.map((request) => (
               <div key={request.id} className="flex flex-col gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] p-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
@@ -472,12 +478,12 @@ function PostCard({
           </div>
         )}
 
-        <form className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2" onSubmit={addComment}>
+        <form className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={addComment}>
           <input
             value={comment}
             onChange={(event) => setComment(event.target.value)}
             className="h-9 min-w-0 flex-1 rounded-md border border-[var(--border)] bg-transparent px-3 text-sm outline-none"
-            placeholder="Adicionar comentario"
+            placeholder="Adicionar comentário"
           />
           <Button size="sm" type="submit">Comentar</Button>
         </form>
@@ -485,7 +491,7 @@ function PostCard({
         {post.comments.length > 0 && (
           <div className="mt-3 space-y-2 border-l-2 border-[var(--border)] pl-3">
             {post.comments.map((item, index) => (
-              <p key={`${item}-${index}`} className="text-sm"><strong>Voce:</strong> {item}</p>
+              <p key={`${item}-${index}`} className="text-sm"><strong>Você:</strong> {item}</p>
             ))}
           </div>
         )}
@@ -504,7 +510,7 @@ function PostScrumPanel({
   onUpdate: (updater: (post: ForumPost) => ForumPost) => void;
 }) {
   const [taskTitle, setTaskTitle] = useState("");
-  const [priority, setPriority] = useState<ScrumTask["priority"]>("Media");
+  const [priority, setPriority] = useState<ScrumTask["priority"]>("Média");
   const [points, setPoints] = useState(3);
 
   function addTask(event: React.FormEvent<HTMLFormElement>) {
@@ -521,7 +527,7 @@ function PostScrumPanel({
 
     onUpdate((current) => ({ ...current, tasks: [...current.tasks, task] }));
     setTaskTitle("");
-    setPriority("Media");
+    setPriority("Média");
     setPoints(3);
   }
 
@@ -544,7 +550,7 @@ function PostScrumPanel({
       <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px] md:items-center">
         <div className="min-w-0">
           <h4 className="font-black">Painel Scrum do post</h4>
-          <p className="text-sm text-muted">{completed}/{post.tasks.length} tarefas concluidas · {progress}%</p>
+          <p className="text-sm text-muted">{completed}/{post.tasks.length} tarefas concluídas · {progress}%</p>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
           <div className="h-full bg-[var(--success)]" style={{ width: `${progress}%` }} />
@@ -564,9 +570,9 @@ function PostScrumPanel({
           className="h-10 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 text-sm"
         >
           <option>Baixa</option>
-          <option>Media</option>
+          <option>Média</option>
           <option>Alta</option>
-          <option>Critica</option>
+          <option>Crítica</option>
         </select>
         <input
           type="number"
@@ -580,8 +586,8 @@ function PostScrumPanel({
         <Button type="submit">Adicionar</Button>
       </form>
 
-      <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[880px] grid-cols-5 gap-3">
+      <div className="pb-1 sm:overflow-x-auto">
+        <div className="grid gap-3 sm:min-w-[880px] sm:grid-cols-5">
           {columns.map((column) => {
             const tasks = post.tasks.filter((task) => task.status === column.id);
             return (
@@ -608,7 +614,7 @@ function PostScrumPanel({
                         <button className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-xs text-muted hover:bg-red-500/10 hover:text-red-500" onClick={() => deleteTask(task.id)}>x</button>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        <Badge tone={task.priority === "Critica" ? "red" : task.priority === "Alta" ? "orange" : "neutral"}>{task.priority}</Badge>
+                        <Badge tone={task.priority === "Crítica" ? "red" : task.priority === "Alta" ? "orange" : "neutral"}>{task.priority}</Badge>
                         <Badge tone="blue">{task.points} pts</Badge>
                       </div>
                     </div>

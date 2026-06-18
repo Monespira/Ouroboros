@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Bot,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -14,7 +13,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  Search,
   Sun,
   Users,
   X,
@@ -27,8 +25,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type ViewId = "forum" | "projects" | "tasks" | "calendar";
-type ProjectStatus = "Planejamento" | "Ativo" | "Pausado" | "Concluido";
-type TaskStatus = "Backlog" | "To Do" | "Em progresso" | "Review" | "Done";
+type ProjectStatus = "Planejamento" | "Ativo" | "Pausado" | "Concluído";
+type TaskStatus = "Backlog" | "A fazer" | "Em andamento" | "Revisão" | "Concluído";
 
 type Project = {
   id: string;
@@ -48,7 +46,7 @@ type ShellTask = {
   title: string;
   projectId: string;
   status: TaskStatus;
-  priority: "Baixa" | "Media" | "Alta" | "Critica";
+  priority: "Baixa" | "Média" | "Alta" | "Crítica";
   points?: number;
   sourcePostId?: string;
   sourceTaskId?: string;
@@ -73,7 +71,7 @@ type ChatMessage = {
   createdAt: string;
 };
 
-const projectColors = ["#2563eb", "#16a34a", "#ea580c", "#7c3aed", "#0891b2", "#dc2626"];
+const projectColors = ["#24599a", "#4b2872", "#ff6b00", "#2f74c0", "#6d3aa0", "#0f9f6e"];
 
 const views: Array<{
   id: ViewId;
@@ -81,19 +79,19 @@ const views: Array<{
   description: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }> = [
-  { id: "forum", label: "Forum", description: "Posts e Scrum por publicacao", icon: MessageSquare },
-  { id: "projects", label: "Projetos", description: "Carteira e quadros", icon: Folder },
+  { id: "forum", label: "Fórum", description: "Posts e Scrum do SCRUB", icon: MessageSquare },
+  { id: "projects", label: "Projetos", description: "Carteira CIEE Rio", icon: Folder },
   { id: "tasks", label: "Tarefas", description: "Backlog operacional", icon: ClipboardList },
-  { id: "calendar", label: "Calendario", description: "Agenda de reunioes", icon: CalendarDays },
+  { id: "calendar", label: "Calendário", description: "Agenda de reuniões", icon: CalendarDays },
 ];
 
-const taskColumns: TaskStatus[] = ["Backlog", "To Do", "Em progresso", "Review", "Done"];
+const taskColumns: TaskStatus[] = ["Backlog", "A fazer", "Em andamento", "Revisão", "Concluído"];
 
 const demoPosts: ForumPost[] = [
   {
     id: "3003",
     title: "Portal de vagas para estudantes",
-    body: "Criar uma area para estudantes acompanharem candidaturas, etapas e documentos pendentes em um unico painel.",
+    body: "Criar uma área para estudantes acompanharem candidaturas, etapas e documentos pendentes em um único painel.",
     category: "Produto",
     kind: "Ideia",
     creatorId: "ana",
@@ -103,51 +101,51 @@ const demoPosts: ForumPost[] = [
     score: 2,
     votes: { ana: 1, bruno: 1 },
     comments: ["Priorizar filtros por modalidade.", "Validar fluxo com atendimento."],
-    createdAt: "ha 2 dias",
+    createdAt: "há 2 dias",
     tasks: [
       { id: "task-3003-1", title: "Mapear jornadas de candidatura", status: "DONE", priority: "Alta", points: 5 },
       { id: "task-3003-2", title: "Desenhar painel de acompanhamento", status: "IN_PROGRESS", priority: "Alta", points: 8 },
-      { id: "task-3003-3", title: "Definir criterios de documentos pendentes", status: "TODO", priority: "Media", points: 3 },
+      { id: "task-3003-3", title: "Definir critérios de documentos pendentes", status: "TODO", priority: "Média", points: 3 },
     ],
   },
   {
     id: "3002",
-    title: "Automacao de triagem de curriculos",
+    title: "Automação de triagem de currículos",
     body: "Organizar regras de triagem para reduzir trabalho manual e destacar candidatos aderentes aos requisitos das empresas.",
     category: "RH",
-    kind: "Sugestao",
+    kind: "Sugestão",
     creatorId: "bruno",
     creatorName: "Bruno Lima",
     memberIds: ["ana", "bruno", "carla"],
     requests: [],
     score: 1,
     votes: { ana: 1, bruno: 1, carla: -1 },
-    comments: ["Comecar com criterios transparentes.", "Registrar justificativas da classificacao."],
-    createdAt: "ha 4 dias",
+    comments: ["Começar com critérios transparentes.", "Registrar justificativas da classificação."],
+    createdAt: "há 4 dias",
     tasks: [
-      { id: "task-3002-1", title: "Levantar regras atuais de triagem", status: "DONE", priority: "Media", points: 3 },
-      { id: "task-3002-2", title: "Criar prototipo de ranking", status: "REVIEW", priority: "Alta", points: 5 },
-      { id: "task-3002-3", title: "Testar com uma vaga piloto", status: "BACKLOG", priority: "Media", points: 5 },
+      { id: "task-3002-1", title: "Levantar regras atuais de triagem", status: "DONE", priority: "Média", points: 3 },
+      { id: "task-3002-2", title: "Criar protótipo de ranking", status: "REVIEW", priority: "Alta", points: 5 },
+      { id: "task-3002-3", title: "Testar com uma vaga piloto", status: "BACKLOG", priority: "Média", points: 5 },
     ],
   },
   {
     id: "3001",
-    title: "Calendario de ceremonias Scrum",
-    body: "Padronizar planning, daily, review e retrospectiva dos projetos internos com agenda visivel para todos os participantes.",
+    title: "Calendário de cerimônias Scrum",
+    body: "Padronizar planning, daily, review e retrospectiva dos projetos internos com agenda visível para todos os participantes.",
     category: "Engenharia",
-    kind: "Atualizacao",
+    kind: "Atualização",
     creatorId: "carla",
     creatorName: "Carla Mendes",
     memberIds: ["ana", "carla"],
     requests: [],
     score: 1,
     votes: { ana: -1, carla: 1, bruno: 1 },
-    comments: ["Adicionar lembretes antes das reunioes."],
-    createdAt: "ha 1 semana",
+    comments: ["Adicionar lembretes antes das reuniões."],
+    createdAt: "há 1 semana",
     tasks: [
-      { id: "task-3001-1", title: "Definir modelo de cerimonias", status: "DONE", priority: "Baixa", points: 2 },
-      { id: "task-3001-2", title: "Cadastrar reunioes recorrentes", status: "TODO", priority: "Media", points: 3 },
-      { id: "task-3001-3", title: "Compartilhar calendario com equipes", status: "BACKLOG", priority: "Baixa", points: 2 },
+      { id: "task-3001-1", title: "Definir modelo de cerimônias", status: "DONE", priority: "Baixa", points: 2 },
+      { id: "task-3001-2", title: "Cadastrar reuniões recorrentes", status: "TODO", priority: "Média", points: 3 },
+      { id: "task-3001-3", title: "Compartilhar calendário com equipes", status: "BACKLOG", priority: "Baixa", points: 2 },
     ],
   },
 ];
@@ -165,7 +163,7 @@ const demoChatMessages: ChatMessage[] = [
     authorId: "ana",
     authorName: "Ana Souza",
     authorInitials: "AS",
-    body: "Ja deixei as etapas principais no backlog para revisarmos no planning.",
+    body: "Já deixei as etapas principais no backlog para revisarmos no planning.",
     createdAt: "2026-06-18T09:10:00.000Z",
   },
   {
@@ -174,7 +172,7 @@ const demoChatMessages: ChatMessage[] = [
     authorId: "bruno",
     authorName: "Bruno Lima",
     authorInitials: "BL",
-    body: "O prototipo esta em review. Falta validar os criterios com RH.",
+    body: "O protótipo está em review. Falta validar os critérios com RH.",
     createdAt: "2026-06-18T10:25:00.000Z",
   },
   {
@@ -183,7 +181,7 @@ const demoChatMessages: ChatMessage[] = [
     authorId: "carla",
     authorName: "Carla Mendes",
     authorInitials: "CM",
-    body: "Inclui a primeira daily para demonstrar o calendario do projeto.",
+    body: "Inclui a primeira daily para demonstrar o calendário do projeto.",
     createdAt: "2026-06-18T11:40:00.000Z",
   },
 ];
@@ -192,7 +190,6 @@ export function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [commandOpen, setCommandOpen] = useState(false);
   const [activeView, setActiveView] = useState<ViewId>("forum");
   const [posts, setPosts] = useState<ForumPost[]>(demoPosts);
   const [meetings, setMeetings] = useState<ProjectMeeting[]>(demoMeetings);
@@ -223,7 +220,7 @@ export function AppShell() {
     () => ({
       active: visibleProjects.filter((project) => project.status === "Ativo").length,
       members: visibleProjects.reduce((total, project) => total + project.members, 0),
-      doneTasks: visibleTasks.filter((task) => task.status === "Done").length,
+      doneTasks: visibleTasks.filter((task) => task.status === "Concluído").length,
     }),
     [visibleProjects, visibleTasks],
   );
@@ -231,18 +228,6 @@ export function AppShell() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
-
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setCommandOpen((value) => !value);
-      }
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
 
   function selectView(view: ViewId) {
     setActiveView(view);
@@ -296,7 +281,7 @@ export function AppShell() {
                   id: crypto.randomUUID(),
                   title,
                   status: "BACKLOG",
-                  priority: "Media",
+                  priority: "Média",
                   points: 3,
                 },
               ],
@@ -334,7 +319,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen bg-transparent text-[var(--foreground)]">
       {mobileOpen && (
         <button
           className="fixed inset-0 z-30 bg-black/45 lg:hidden"
@@ -345,39 +330,22 @@ export function AppShell() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex border-r border-[var(--border)] bg-[var(--card)] shadow-xl transition-all duration-200 lg:translate-x-0 lg:shadow-none",
+          "brand-gradient fixed inset-y-0 left-0 z-40 flex border-r border-white/15 text-white shadow-xl shadow-blue-950/25 transition-all duration-200 lg:translate-x-0",
           sidebarCollapsed ? "w-20" : "w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex h-16 items-center gap-3 border-b border-[var(--border)] px-4">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[var(--accent)] text-white">
-              <Bot size={22} />
-            </div>
-            {!sidebarCollapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black">SCRUB</p>
-                <p className="truncate text-xs text-muted">Projetos, forum e colaboracao</p>
-              </div>
-            )}
-            <button className="grid h-8 w-8 place-items-center rounded-md text-muted lg:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="flex h-24 items-center gap-3 border-b border-white/15 px-4">
+            <ScrubLogo compact={sidebarCollapsed} />
+            {!sidebarCollapsed && <div className="min-w-0 flex-1" />}
+            <button className="grid h-8 w-8 place-items-center rounded-md text-white/70 hover:bg-white/10 lg:hidden" onClick={() => setMobileOpen(false)}>
               <X size={18} />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3">
-            <Button
-              variant="outline"
-              className={cn("mb-4 w-full", sidebarCollapsed ? "px-0" : "justify-start")}
-              onClick={() => setCommandOpen(true)}
-              title="Busca global"
-            >
-              <Search size={16} />
-              {!sidebarCollapsed && <span>Busca global</span>}
-            </Button>
-
-            {!sidebarCollapsed && <p className="mb-2 px-3 text-xs font-bold uppercase text-muted">Arquitetura</p>}
+            {!sidebarCollapsed && <p className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.18em] text-white/55">Programa</p>}
             <nav className="space-y-1">
               {views.map((view) => {
                 const Icon = view.icon;
@@ -390,8 +358,8 @@ export function AppShell() {
                     className={cn(
                       "flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-left text-sm font-semibold transition",
                       active
-                        ? "border-[var(--accent)]/20 bg-[var(--accent)]/10 text-[var(--accent)]"
-                        : "text-muted hover:bg-black/[0.05] hover:text-[var(--foreground)] dark:hover:bg-white/[0.08]",
+                        ? "border-white/30 bg-white text-[var(--accent)] shadow-sm"
+                        : "text-white/72 hover:bg-white/10 hover:text-white",
                       sidebarCollapsed && "justify-center px-0",
                     )}
                     title={view.label}
@@ -400,7 +368,9 @@ export function AppShell() {
                     {!sidebarCollapsed && (
                       <span className="min-w-0">
                         <span className="block truncate">{view.label}</span>
-                        <span className="block truncate text-xs font-normal text-muted">{view.description}</span>
+                        <span className={cn("block truncate text-xs font-normal", active ? "text-[var(--accent-blue)]" : "text-white/50")}>
+                          {view.description}
+                        </span>
                       </span>
                     )}
                   </button>
@@ -409,18 +379,18 @@ export function AppShell() {
             </nav>
 
             {!sidebarCollapsed && (
-              <div className="mt-6 rounded-lg border border-[var(--border)] bg-black/[0.02] p-3 dark:bg-white/[0.03]">
-                <p className="text-xs font-bold uppercase text-muted">Resumo</p>
+              <div className="mt-6 rounded-lg border border-white/15 bg-white/10 p-3">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/60">Resumo</p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <MiniStat label="Ativos" value={projectStats.active} />
                   <MiniStat label="Pessoas" value={projectStats.members} />
-                  <MiniStat label="Done" value={projectStats.doneTasks} />
+                  <MiniStat label="Concluídas" value={projectStats.doneTasks} />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="border-t border-[var(--border)] p-3">
+          <div className="border-t border-white/15 p-3">
             <Button
               variant="ghost"
               size={sidebarCollapsed ? "icon" : "sm"}
@@ -436,13 +406,16 @@ export function AppShell() {
       </aside>
 
       <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-20" : "lg:pl-72")}>
-        <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--card)]/92 px-4 backdrop-blur">
-          <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-3">
+        <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-white/88 px-3 backdrop-blur dark:bg-[var(--card)]/88 sm:px-4">
+          <div className="mx-auto flex min-h-16 max-w-[1320px] flex-wrap items-center gap-2 py-2 sm:h-16 sm:flex-nowrap sm:gap-3 sm:py-0">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)}>
               <Menu size={20} />
             </Button>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs text-muted">Painel / {activeMeta.description}</div>
+            <div className="lg:hidden">
+              <ScrubLogo compact />
+            </div>
+            <div className="min-w-0 flex-[1_1_140px] sm:flex-1">
+              <div className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-blue)]">SCRUB / CIEE Rio</div>
               <h1 className="truncate text-lg font-black">{activeMeta.label}</h1>
             </div>
             <Button variant="outline" size="icon" onClick={() => setDark((value) => !value)} title="Alternar tema">
@@ -451,8 +424,8 @@ export function AppShell() {
             <select
               value={currentUserId}
               onChange={(event) => setCurrentUserId(event.target.value)}
-              className="h-9 max-w-32 rounded-md border border-[var(--border)] bg-[var(--card)] px-2 text-sm sm:max-w-none"
-              aria-label="Usuario ativo"
+              className="h-9 min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-2 text-sm sm:max-w-none sm:flex-none"
+              aria-label="Usuário ativo"
             >
               {forumUsers.map((user) => (
                 <option key={user.id} value={user.id}>{user.name}</option>
@@ -460,14 +433,14 @@ export function AppShell() {
             </select>
             {activeView === "forum" ? (
               <a href="#novo-post" className="hidden sm:block">
-                <Button variant="primary" size="sm">Nova publicacao</Button>
+                <Button variant="primary" size="sm">Nova publicação</Button>
               </a>
             ) : null}
             <Avatar label={currentUser.initials} />
           </div>
         </header>
 
-        <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1320px] px-4 py-5 md:px-6 md:py-6">
+        <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1320px] px-3 py-4 sm:px-4 md:px-6 md:py-6">
           {activeView === "forum" && (
             <ForumLanding
               posts={posts}
@@ -496,36 +469,6 @@ export function AppShell() {
           {activeView === "calendar" && <CalendarView projects={visibleProjects} meetings={meetings} />}
         </main>
       </div>
-
-      {commandOpen && (
-        <div className="fixed inset-0 z-50 bg-black/45 p-4" onClick={() => setCommandOpen(false)}>
-          <div
-            className="surface mx-auto mt-20 max-w-2xl overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <input
-              autoFocus
-              placeholder="Buscar modulos, projetos e tarefas..."
-              className="w-full border-b border-[var(--border)] bg-transparent px-4 py-4 outline-none"
-            />
-            <div className="p-2">
-              {views.map((view) => (
-                <button
-                  key={view.id}
-                  className="flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-sm hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-                  onClick={() => {
-                    selectView(view.id);
-                    setCommandOpen(false);
-                  }}
-                >
-                  <span>Abrir {view.label}</span>
-                  <span className="text-xs text-muted">Enter</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {createOpen && (
         <div className="fixed inset-0 z-50 bg-black/45 p-4" onClick={() => setCreateOpen(false)}>
@@ -593,27 +536,27 @@ function ProjectsView({
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-black">Carteira de projetos</h2>
-        <p className="text-sm text-muted">Projetos criados por {currentUserName} ou onde a participacao foi aceita.</p>
+        <p className="text-sm text-muted">Projetos criados por {currentUserName} ou onde a participação foi aceita.</p>
       </div>
 
       {projects.length === 0 || !selectedProject ? (
         <Card>
           <CardContent className="grid min-h-56 place-items-center text-center">
             <div>
-              <h3 className="text-lg font-black">Nenhum projeto disponivel</h3>
-              <p className="mt-2 max-w-md text-sm text-muted">Solicite participacao em um post do forum para acompanhar o projeto aqui.</p>
+              <h3 className="text-lg font-black">Nenhum projeto disponível</h3>
+              <p className="mt-2 max-w-md text-sm text-muted">Solicite participação em um post do fórum para acompanhar o projeto aqui.</p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
           <div className="space-y-2">
             {projects.map((project) => (
               <button
                 key={project.id}
                 onClick={() => onSelectProject(project.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded-lg border bg-[var(--card)] p-4 text-left shadow-sm transition hover:border-[var(--accent)]",
+                  "flex w-full items-start gap-3 rounded-lg border bg-[var(--card)] p-3 text-left shadow-sm transition hover:border-[var(--accent)] sm:p-4",
                   selectedProject.id === project.id ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/15" : "border-[var(--border)]",
                 )}
               >
@@ -636,7 +579,7 @@ function ProjectsView({
             ))}
           </div>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="flex-row items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="mb-3 grid h-12 w-12 place-items-center rounded-md text-white" style={{ backgroundColor: selectedProject.color }}>
@@ -651,14 +594,14 @@ function ProjectsView({
             </CardHeader>
             <CardContent className="space-y-5">
               <div>
-                <p className="text-xs font-bold uppercase text-muted">Descricao</p>
+                <p className="text-xs font-bold uppercase text-muted">Descrição</p>
                 <p className="mt-2 text-sm leading-6">{selectedProject.description}</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <ProjectInfo label="Progresso" value={`${selectedProject.progress}%`} />
                 <ProjectInfo label="Membros" value={selectedProject.members.toString()} />
-                <ProjectInfo label="Area" value={selectedProject.area} />
+                <ProjectInfo label="Área" value={selectedProject.area} />
               </div>
 
               <div>
@@ -684,7 +627,7 @@ function ProjectsView({
             </CardContent>
           </Card>
 
-          <div className="lg:col-start-2 grid gap-4 xl:grid-cols-2">
+          <div className="grid min-w-0 gap-4 lg:col-start-2 xl:grid-cols-2">
             <ProjectMeetingsPanel
               project={selectedProject}
               meetings={projectMeetings}
@@ -717,8 +660,8 @@ function postToProject(post: ForumPost): Project {
     id: `post-${post.id}`,
     name: post.title,
     area: post.category,
-    status: progress === 100 ? "Concluido" : "Ativo",
-    description: post.body || `Projeto criado a partir de uma publicacao de ${post.creatorName}.`,
+    status: progress === 100 ? "Concluído" : "Ativo",
+    description: post.body || `Projeto criado a partir de uma publicação de ${post.creatorName}.`,
     progress,
     members: post.memberIds.length,
     creatorId: post.creatorId,
@@ -743,10 +686,10 @@ function postToTasks(post: ForumPost): ShellTask[] {
 function scrumStatusToTaskStatus(status: ForumPost["tasks"][number]["status"]): TaskStatus {
   const statusMap: Record<ForumPost["tasks"][number]["status"], TaskStatus> = {
     BACKLOG: "Backlog",
-    TODO: "To Do",
-    IN_PROGRESS: "Em progresso",
-    REVIEW: "Review",
-    DONE: "Done",
+    TODO: "A fazer",
+    IN_PROGRESS: "Em andamento",
+    REVIEW: "Revisão",
+    DONE: "Concluído",
   };
 
   return statusMap[status];
@@ -755,10 +698,10 @@ function scrumStatusToTaskStatus(status: ForumPost["tasks"][number]["status"]): 
 function taskStatusToScrumStatus(status: TaskStatus): ForumPost["tasks"][number]["status"] {
   const statusMap: Record<TaskStatus, ForumPost["tasks"][number]["status"]> = {
     Backlog: "BACKLOG",
-    "To Do": "TODO",
-    "Em progresso": "IN_PROGRESS",
-    Review: "REVIEW",
-    Done: "DONE",
+    "A fazer": "TODO",
+    "Em andamento": "IN_PROGRESS",
+    Revisão: "REVIEW",
+    Concluído: "DONE",
   };
 
   return statusMap[status];
@@ -819,7 +762,7 @@ function SprintsView({ project }: { project: Project }) {
               </div>
               <div>
                 <p className="font-bold">{step}</p>
-                <p className="text-sm text-muted">Cerimonia conectada ao ciclo de entrega do projeto.</p>
+                <p className="text-sm text-muted">Cerimônia conectada ao ciclo de entrega do projeto.</p>
               </div>
             </div>
           ))}
@@ -830,7 +773,7 @@ function SprintsView({ project }: { project: Project }) {
           <h2 className="font-black">Meta</h2>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted">Entregar o fluxo principal com backlog refinado, tarefas priorizadas e criterios de aceite revisados.</p>
+          <p className="text-sm text-muted">Entregar o fluxo principal com backlog refinado, tarefas priorizadas e critérios de aceite revisados.</p>
         </CardContent>
       </Card>
     </div>
@@ -874,7 +817,7 @@ function TasksView({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-xl font-black">Quadro de tarefas</h2>
-          <p className="text-sm text-muted">Todas as tarefas dos projetos em que o usuario participa. A cor identifica o projeto.</p>
+          <p className="text-sm text-muted">Todas as tarefas dos projetos em que o usuário participa. A cor identifica o projeto.</p>
         </div>
         <form className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 sm:grid-cols-[minmax(160px,220px)_minmax(220px,1fr)_auto]" onSubmit={submitTask}>
           <select
@@ -898,7 +841,7 @@ function TasksView({
             value={taskTitle}
             onChange={(event) => setTaskTitle(event.target.value)}
             disabled={projects.length === 0}
-            placeholder="Titulo da tarefa"
+            placeholder="Título da tarefa"
             className="h-10 rounded-md border border-[var(--border)] bg-transparent px-3 text-sm outline-none focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
           />
           <Button variant="primary" disabled={projects.length === 0 || !taskTitle.trim()}>
@@ -917,12 +860,12 @@ function TasksView({
           ))}
         </div>
       )}
-      <div className="overflow-x-auto pb-2">
-        <div className="grid min-w-[900px] grid-cols-5 gap-3">
+      <div className="pb-2 sm:overflow-x-auto">
+        <div className="grid gap-3 sm:min-w-[900px] sm:grid-cols-5">
           {taskColumns.map((column) => {
             const columnTasks = tasks.filter((task) => task.status === column);
             return (
-              <div key={column} className="min-h-80 rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
+              <div key={column} className="min-h-52 rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 sm:min-h-80">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase text-muted">{column}</h3>
                   <Badge>{columnTasks.length}</Badge>
@@ -940,7 +883,7 @@ function TasksView({
                       </div>
                       <p className="text-sm font-black">{task.title}</p>
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Badge tone={task.priority === "Critica" ? "red" : task.priority === "Alta" ? "orange" : "neutral"}>
+                        <Badge tone={task.priority === "Crítica" ? "red" : task.priority === "Alta" ? "orange" : "neutral"}>
                           {task.priority}
                         </Badge>
                         <select
@@ -1002,7 +945,7 @@ function ProjectMeetingsPanel({
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-black">Reunioes</h2>
+        <h2 className="font-black">Reuniões</h2>
       </CardHeader>
       <CardContent className="space-y-4">
         {canSchedule && (
@@ -1010,14 +953,14 @@ function ProjectMeetingsPanel({
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Titulo da reuniao"
+              placeholder="Título da reunião"
               className="h-10 rounded-md border border-[var(--border)] bg-transparent px-3 text-sm outline-none focus:border-[var(--accent)] sm:col-span-2"
             />
             <select
               value={type}
               onChange={(event) => setType(event.target.value as ProjectMeeting["type"])}
               className="h-10 rounded-md border border-[var(--border)] bg-transparent px-3 text-sm outline-none focus:border-[var(--accent)]"
-              aria-label="Tipo de reuniao"
+              aria-label="Tipo de reunião"
             >
               {["Daily", "Planning", "Review", "Retrospectiva", "Outro"].map((meetingType) => (
                 <option key={meetingType}>{meetingType}</option>
@@ -1043,12 +986,12 @@ function ProjectMeetingsPanel({
         )}
 
         {!canSchedule && (
-          <p className="rounded-lg border border-[var(--border)] p-3 text-sm text-muted">Somente o criador do projeto pode marcar reunioes.</p>
+          <p className="rounded-lg border border-[var(--border)] p-3 text-sm text-muted">Somente o criador do projeto pode marcar reuniões.</p>
         )}
 
         <div className="space-y-2">
           {meetings.length === 0 ? (
-            <p className="rounded-lg border border-[var(--border)] p-3 text-sm text-muted">Nenhuma reuniao marcada para este projeto.</p>
+            <p className="rounded-lg border border-[var(--border)] p-3 text-sm text-muted">Nenhuma reunião marcada para este projeto.</p>
           ) : (
             meetings.map((meeting) => (
               <div key={meeting.id} className="rounded-lg border border-[var(--border)] p-3">
@@ -1095,15 +1038,15 @@ function CalendarView({ projects, meetings }: { projects: Project[]; meetings: P
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-black">Calendario</h2>
-          <p className="text-sm text-muted">Reunioes marcadas nos projetos em que o usuario participa.</p>
+          <h2 className="text-xl font-black">Calendário</h2>
+          <p className="text-sm text-muted">Reuniões marcadas nos projetos em que o usuário participa.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} title="Mes anterior">
+          <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} title="Mês anterior">
             <ChevronLeft size={18} />
           </Button>
           <div className="min-w-44 text-center text-sm font-black capitalize">{monthLabel}</div>
-          <Button variant="outline" size="icon" onClick={() => moveMonth(1)} title="Proximo mes">
+          <Button variant="outline" size="icon" onClick={() => moveMonth(1)} title="Próximo mês">
             <ChevronRight size={18} />
           </Button>
         </div>
@@ -1111,63 +1054,67 @@ function CalendarView({ projects, meetings }: { projects: Project[]; meetings: P
 
       <Card>
         <CardContent className="p-0">
-          <div className="grid grid-cols-7 border-b border-[var(--border)] text-center text-xs font-bold uppercase text-muted">
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map((weekday) => (
-              <div key={weekday} className="border-r border-[var(--border)] px-2 py-3 last:border-r-0">
-                {weekday}
+          <div className="overflow-x-auto">
+            <div className="min-w-[720px]">
+              <div className="grid grid-cols-7 border-b border-[var(--border)] text-center text-xs font-bold uppercase text-muted">
+                {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map((weekday) => (
+                  <div key={weekday} className="border-r border-[var(--border)] px-2 py-3 last:border-r-0">
+                    {weekday}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7">
-            {monthDays.map((day) => {
-              const dateKey = toDateKey(day);
-              const dayMeetings = meetingsByDate[dateKey] ?? [];
-              const inCurrentMonth = day.getMonth() === visibleMonth.getMonth();
-              const isToday = dateKey === toDateKey(today);
+              <div className="grid grid-cols-7">
+                {monthDays.map((day) => {
+                  const dateKey = toDateKey(day);
+                  const dayMeetings = meetingsByDate[dateKey] ?? [];
+                  const inCurrentMonth = day.getMonth() === visibleMonth.getMonth();
+                  const isToday = dateKey === toDateKey(today);
 
-              return (
-                <div
-                  key={dateKey}
-                  className={cn(
-                    "min-h-32 border-r border-b border-[var(--border)] p-2 last:border-r-0",
-                    !inCurrentMonth && "bg-black/[0.02] text-muted dark:bg-white/[0.02]",
-                  )}
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <span
+                  return (
+                    <div
+                      key={dateKey}
                       className={cn(
-                        "grid h-7 w-7 place-items-center rounded-md text-sm font-bold",
-                        isToday && "bg-[var(--accent)] text-white",
+                        "min-h-32 border-r border-b border-[var(--border)] p-2 last:border-r-0",
+                        !inCurrentMonth && "bg-black/[0.02] text-muted dark:bg-white/[0.02]",
                       )}
                     >
-                      {day.getDate()}
-                    </span>
-                    {dayMeetings.length > 0 && <Badge>{dayMeetings.length}</Badge>}
-                  </div>
-                  <div className="space-y-1.5">
-                    {dayMeetings.map((meeting) => {
-                      const project = projectMap.get(meeting.projectId);
-
-                      return (
-                        <div
-                          key={meeting.id}
-                          className="rounded-md border border-[var(--border)] bg-[var(--card)] p-2 text-left shadow-sm"
-                          style={{ borderLeftWidth: 4, borderLeftColor: project?.color ?? "var(--accent)" }}
+                      <div className="mb-2 flex items-center justify-between">
+                        <span
+                          className={cn(
+                            "grid h-7 w-7 place-items-center rounded-md text-sm font-bold",
+                            isToday && "bg-[var(--accent)] text-white",
+                          )}
                         >
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-muted">
-                            <span>{meeting.time}</span>
-                            <span>-</span>
-                            <span>{meeting.type}</span>
-                          </div>
-                          <p className="mt-1 truncate text-xs font-black">{meeting.title}</p>
-                          <p className="truncate text-[11px] text-muted">{project?.name ?? "Projeto"}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                          {day.getDate()}
+                        </span>
+                        {dayMeetings.length > 0 && <Badge>{dayMeetings.length}</Badge>}
+                      </div>
+                      <div className="space-y-1.5">
+                        {dayMeetings.map((meeting) => {
+                          const project = projectMap.get(meeting.projectId);
+
+                          return (
+                            <div
+                              key={meeting.id}
+                              className="rounded-md border border-[var(--border)] bg-[var(--card)] p-2 text-left shadow-sm"
+                              style={{ borderLeftWidth: 4, borderLeftColor: project?.color ?? "var(--accent)" }}
+                            >
+                              <div className="flex items-center gap-1 text-[11px] font-bold text-muted">
+                                <span>{meeting.time}</span>
+                                <span>-</span>
+                                <span>{meeting.type}</span>
+                              </div>
+                              <p className="mt-1 truncate text-xs font-black">{meeting.title}</p>
+                              <p className="truncate text-[11px] text-muted">{project?.name ?? "Projeto"}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1236,9 +1183,32 @@ function ChatView({
 
 function MiniStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-[var(--border)] bg-[var(--card)] p-2">
+    <div className="rounded-md border border-white/20 bg-white/12 p-2 text-white">
       <strong className="block text-sm font-black">{value}</strong>
-      <span className="text-[10px] font-semibold uppercase text-muted">{label}</span>
+      <span className="text-[10px] font-semibold uppercase text-white/60">{label}</span>
+    </div>
+  );
+}
+
+function ScrubLogo({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <div
+        className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md bg-white p-1.5 shadow-sm shadow-blue-950/20"
+        aria-label="SCRUB CIEE Rio"
+      >
+        <img src="/scrub-icon.png" alt="Ícone SCRUB" className="h-full w-full object-contain" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex h-14 shrink-0 items-center gap-3 rounded-md bg-white px-3 shadow-sm shadow-blue-950/20"
+      aria-label="SCRUB CIEE Rio"
+    >
+      <img src="/scrub-icon.png" alt="Ícone SCRUB" className="h-10 w-10 object-contain" />
+      <span className="text-xl font-black tracking-[0.14em] text-[var(--accent)]">SCRUB</span>
     </div>
   );
 }
