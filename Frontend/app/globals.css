@@ -3,30 +3,32 @@
 :root {
   color-scheme: light;
 
-  --background: #f5f5f5;
-  --foreground: #1f2937;
+  --background: #f7f9ff;
+  --foreground: #17213c;
 
   --card: #ffffff;
-  --muted: #6b7280;
-  --border: #d1d5db;
+  --muted: #667085;
+  --border: #d9e2f3;
 
-  --accent: #1f5aa8;
+  --accent: #5c2bb8;
+  --accent-blue: #0767b1;
   --accent-2: #f58220;
 
-  --success: #16a34a;
+  --success: #0f9f6e;
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #0f172a;
-  --foreground: #f8fafc;
+  --background: #121633;
+  --foreground: #f8f9ff;
 
-  --card: #1e293b;
-  --muted: #94a3b8;
-  --border: #334155;
+  --card: #191f42;
+  --muted: #b8c0d9;
+  --border: #313a69;
 
-  --accent: #3b82f6;
+  --accent: #8d65ff;
+  --accent-blue: #4ea7f5;
   --accent-2: #fb923c;
 
   --success: #22c55e;
@@ -38,9 +40,15 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: var(--background);
+  background:
+    linear-gradient(180deg, #ffffff 0%, var(--background) 42%, #eef4ff 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.dark body {
+  background:
+    linear-gradient(180deg, #171c3d 0%, var(--background) 48%, #10142d 100%);
 }
 
 button,
@@ -67,6 +75,7 @@ button {
 .surface {
   background: var(--card);
   border-color: var(--border);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-blue), transparent 92%);
 }
 
 .text-muted {
@@ -75,7 +84,7 @@ button {
 
 .grid-pattern {
   background-image:
-    linear-gradient(color-mix(in srgb, var(--border), transparent 65%) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--border), transparent 65%) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--accent-blue), transparent 88%) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent), transparent 90%) 1px, transparent 1px);
   background-size: 34px 34px;
 }

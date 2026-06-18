@@ -1,0 +1,288 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PROJECT_OWNER
+  PARTICIPANT
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  PAUSED
+  DONE
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  CLOSED
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  REVIEW
+  TESTING
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ForumPostType {
+  DISCUSSION
+  IDEA
+  PROBLEM
+  SUGGESTION
+  UPDATE
+  DOC
+}
+
+enum VoteValue {
+  UP
+  DOWN
+}
+
+model Tenant {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  users     User[]
+  projects  Project[]
+}
+
+model User {
+  id               String            @id @default(cuid())
+  tenantId         String
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name             String
+  email            String            @unique
+  role             Role              @default(PARTICIPANT)
+  title            String
+  department       String
+  image            String?
+  bio              String?
+  createdProjects  Project[]         @relation("ProjectOwner")
+  memberships      ProjectMember[]
+  assignedTasks    Task[]            @relation("TaskAssignee")
+  comments         Comment[]
+  forumPosts       ForumPost[]
+  forumComments    ForumComment[]
+  votes            Vote[]
+  notifications    Notification[]
+  messages         Message[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([tenantId])
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  name        String
+  description String
+  goals       String
+  area        String
+  tags        String[]
+  status      ProjectStatus   @default(PLANNING)
+  startDate   DateTime
+  targetDate  DateTime
+  members     ProjectMember[]
+  sprints     Sprint[]
+  epics       Epic[]
+  tasks       Task[]
+  posts       ForumPost[]
+  channels    ChatChannel[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([tenantId])
+  @@index([ownerId])
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @default(PARTICIPANT)
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model Sprint {
+  id        String       @id @default(cuid())
+  projectId String
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  goal      String
+  startDate DateTime
+  endDate   DateTime
+  status    SprintStatus @default(PLANNED)
+  resources String[]
+  velocity  Int          @default(0)
+  tasks     Task[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Epic {
+  id          String      @id @default(cuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  stories     UserStory[]
+}
+
+model UserStory {
+  id                 String   @id @default(cuid())
+  epicId             String
+  epic               Epic     @relation(fields: [epicId], references: [id], onDelete: Cascade)
+  title              String
+  story              String
+  priority           Priority @default(MEDIUM)
+  storyPoints        Int
+  acceptanceCriteria String
+  dependencies       String[]
+  tasks              Task[]
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprintId    String?
+  sprint      Sprint?     @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  storyId     String?
+  story       UserStory?  @relation(fields: [storyId], references: [id], onDelete: SetNull)
+  assigneeId  String?
+  assignee    User?       @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  title       String
+  description String
+  status      TaskStatus  @default(BACKLOG)
+  priority    Priority    @default(MEDIUM)
+  storyPoints Int         @default(0)
+  labels      String[]
+  attachments String[]
+  history     String[]
+  comments    Comment[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([projectId, status])
+  @@index([assigneeId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  parentId  String?
+  parent    Comment?  @relation("TaskCommentThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   Comment[] @relation("TaskCommentThread")
+  createdAt DateTime  @default(now())
+}
+
+model ForumPost {
+  id        String          @id @default(cuid())
+  tenantId  String
+  projectId String?
+  project   Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category  String
+  type      ForumPostType
+  title     String
+  body      String
+  reactions String[]
+  comments  ForumComment[]
+  votes     Vote[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([tenantId, category])
+  @@index([projectId])
+}
+
+model ForumComment {
+  id        String         @id @default(cuid())
+  postId    String
+  post      ForumPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  parentId  String?
+  parent    ForumComment?  @relation("ForumCommentThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   ForumComment[] @relation("ForumCommentThread")
+  createdAt DateTime       @default(now())
+}
+
+model Vote {
+  id        String     @id @default(cuid())
+  postId    String
+  post      ForumPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     VoteValue
+  createdAt DateTime   @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ChatChannel {
+  id        String    @id @default(cuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  channelId String
+  channel   ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  files     String[]
+  emojis    String[]
+  parentId  String?
+  parent    Message?    @relation("MessageThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   Message[]   @relation("MessageThread")
+  createdAt DateTime    @default(now())
+}

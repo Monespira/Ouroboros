@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type ScrumStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-type PostKind = "Discussao" | "Ideia" | "Problema" | "Sugestao" | "Atualizacao" | "Documentacao";
+export type ScrumStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
+export type PostKind = "Discussao" | "Ideia" | "Problema" | "Sugestao" | "Atualizacao" | "Documentacao";
+export type PostVote = 1 | -1;
 
-type ScrumTask = {
+export type ScrumTask = {
   id: string;
   title: string;
   status: ScrumStatus;
@@ -18,18 +19,41 @@ type ScrumTask = {
   points: number;
 };
 
-type ForumPost = {
+export type ForumUser = {
+  id: string;
+  name: string;
+  initials: string;
+};
+
+export type ParticipationRequest = {
+  id: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
+};
+
+export type ForumPost = {
   id: string;
   title: string;
   body: string;
   category: string;
   kind: PostKind;
+  creatorId: string;
+  creatorName: string;
+  memberIds: string[];
+  requests: ParticipationRequest[];
   score: number;
+  votes: Record<string, PostVote>;
   comments: string[];
   tasks: ScrumTask[];
   createdAt: string;
 };
 
+export const forumUsers: ForumUser[] = [
+  { id: "ana", name: "Ana Souza", initials: "AS" },
+  { id: "bruno", name: "Bruno Lima", initials: "BL" },
+  { id: "carla", name: "Carla Mendes", initials: "CM" },
+];
 const categories = ["Engenharia", "Produto", "Design", "Marketing", "RH", "Geral"];
 const kinds: PostKind[] = ["Discussao", "Ideia", "Problema", "Sugestao", "Atualizacao", "Documentacao"];
 const columns: Array<{ id: ScrumStatus; label: string }> = [
@@ -40,8 +64,19 @@ const columns: Array<{ id: ScrumStatus; label: string }> = [
   { id: "DONE", label: "Done" },
 ];
 
-export function ForumLanding() {
-  const [posts, setPosts] = useState<ForumPost[]>([]);
+export function ForumLanding({
+  posts,
+  currentUser,
+  onCreatePost,
+  onUpdatePost,
+  onDeletePost,
+}: {
+  posts: ForumPost[];
+  currentUser: ForumUser;
+  onCreatePost: (post: ForumPost) => void;
+  onUpdatePost: (postId: string, updater: (post: ForumPost) => ForumPost) => void;
+  onDeletePost: (postId: string) => void;
+}) {
   const [activeCategory, setActiveCategory] = useState("Todas");
   const [sort, setSort] = useState("Recentes");
   const [query, setQuery] = useState("");
@@ -52,7 +87,6 @@ export function ForumLanding() {
     category: "Engenharia",
     kind: "Discussao" as PostKind,
   });
-
   const visiblePosts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = posts.filter((post) => {
@@ -84,7 +118,12 @@ export function ForumLanding() {
       body: draft.body.trim(),
       category: draft.category,
       kind: draft.kind,
+      creatorId: currentUser.id,
+      creatorName: currentUser.name,
+      memberIds: [currentUser.id],
+      requests: [],
       score: 0,
+      votes: {},
       comments: [],
       createdAt: "agora",
       tasks: [
@@ -105,17 +144,17 @@ export function ForumLanding() {
       ],
     };
 
-    setPosts((current) => [post, ...current]);
+    onCreatePost(post);
     setExpandedPostId(post.id);
     setDraft({ title: "", body: "", category: "Engenharia", kind: "Discussao" });
   }
 
   function updatePost(postId: string, updater: (post: ForumPost) => ForumPost) {
-    setPosts((current) => current.map((post) => (post.id === postId ? updater(post) : post)));
+    onUpdatePost(postId, updater);
   }
 
   function deletePost(postId: string) {
-    setPosts((current) => current.filter((post) => post.id !== postId));
+    onDeletePost(postId);
     if (expandedPostId === postId) setExpandedPostId(null);
   }
 
@@ -131,7 +170,7 @@ export function ForumLanding() {
                   <h2 className="mt-3 text-2xl font-black tracking-normal md:text-3xl">Crie posts com painel Scrum proprio</h2>
                   <p className="mt-2 max-w-2xl text-sm text-muted">
                     A landing page agora e apenas o forum. Cada publicacao vira um pequeno projeto com tarefas,
-                    colunas Scrum, votos e comentarios independentes.
+                    colunas Scrum, votos, comentarios e solicitacoes de participacao.
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center shadow-sm">
@@ -143,8 +182,11 @@ export function ForumLanding() {
             </CardHeader>
             <CardContent className="p-4 md:p-5">
               <form className="grid gap-3" onSubmit={createPost}>
+                <div className="rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-muted dark:bg-white/[0.03]">
+                  <p className="text-sm text-muted">Usuario ativo: <strong className="text-[var(--foreground)]">{currentUser.name}</strong></p>
+                </div>
                 <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
-                  <Avatar label="EU" />
+                  <Avatar label={currentUser.initials} />
                   <input
                     value={draft.title}
                     onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))}
@@ -240,6 +282,7 @@ export function ForumLanding() {
                 <PostCard
                   key={post.id}
                   post={post}
+                  currentUser={currentUser}
                   expanded={expandedPostId === post.id}
                   onToggle={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
                   onDelete={() => deletePost(post.id)}
@@ -258,8 +301,8 @@ export function ForumLanding() {
             <CardContent className="space-y-3 p-4 text-sm text-muted">
               <p>1. Publique um post.</p>
               <p>2. Abra o painel Scrum do post.</p>
-              <p>3. Crie tarefas e arraste entre as colunas.</p>
-              <p>4. Vote, comente e acompanhe o progresso por post.</p>
+              <p>3. Solicite entrada quando quiser participar do projeto.</p>
+              <p>4. O criador aprova ou recusa as solicitacoes.</p>
             </CardContent>
           </Card>
 
@@ -284,18 +327,24 @@ export function ForumLanding() {
 
 function PostCard({
   post,
+  currentUser,
   expanded,
   onToggle,
   onDelete,
   onUpdate,
 }: {
   post: ForumPost;
+  currentUser: ForumUser;
   expanded: boolean;
   onToggle: () => void;
   onDelete: () => void;
   onUpdate: (updater: (post: ForumPost) => ForumPost) => void;
 }) {
   const [comment, setComment] = useState("");
+  const isCreator = post.creatorId === currentUser.id;
+  const isMember = post.memberIds.includes(currentUser.id);
+  const currentRequest = post.requests.find((request) => request.userId === currentUser.id);
+  const currentVote = post.votes?.[currentUser.id];
 
   function addComment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -304,18 +353,90 @@ function PostCard({
     setComment("");
   }
 
+  function requestParticipation() {
+    if (isCreator || isMember || currentRequest) return;
+
+    onUpdate((current) => ({
+      ...current,
+      requests: [
+        ...current.requests,
+        {
+          id: crypto.randomUUID(),
+          userId: currentUser.id,
+          userName: currentUser.name,
+          createdAt: "agora",
+        },
+      ],
+    }));
+  }
+
+  function approveRequest(request: ParticipationRequest) {
+    onUpdate((current) => ({
+      ...current,
+      memberIds: current.memberIds.includes(request.userId) ? current.memberIds : [...current.memberIds, request.userId],
+      requests: current.requests.filter((item) => item.id !== request.id),
+    }));
+  }
+
+  function rejectRequest(requestId: string) {
+    onUpdate((current) => ({
+      ...current,
+      requests: current.requests.filter((item) => item.id !== requestId),
+    }));
+  }
+
+  function vote(value: PostVote) {
+    onUpdate((current) => {
+      const votes = { ...(current.votes ?? {}) };
+      const previousVote = votes[currentUser.id] ?? 0;
+
+      if (previousVote === value) {
+        delete votes[currentUser.id];
+        return { ...current, votes, score: current.score - previousVote };
+      }
+
+      votes[currentUser.id] = value;
+      return { ...current, votes, score: current.score + value - previousVote };
+    });
+  }
+
   return (
     <article className="grid grid-cols-[44px_minmax(0,1fr)] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm md:grid-cols-[50px_minmax(0,1fr)]">
       <div className="flex flex-col items-center gap-1 bg-black/[0.03] py-4 dark:bg-white/[0.04]">
-        <button className="grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-black/[0.05] hover:text-[var(--accent)] dark:hover:bg-white/[0.08]" onClick={() => onUpdate((current) => ({ ...current, score: current.score + 1 }))}>▲</button>
+        <button
+          className={cn(
+            "grid h-7 w-7 place-items-center rounded-md border text-sm font-black transition",
+            currentVote === 1
+              ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm"
+              : "border-transparent text-muted hover:bg-black/[0.05] hover:text-[var(--accent)] dark:hover:bg-white/[0.08]",
+          )}
+          onClick={() => vote(1)}
+          aria-pressed={currentVote === 1}
+          title={currentVote === 1 ? "Upvote selecionado" : "Dar upvote"}
+        >
+          ▲
+        </button>
         <strong className="text-sm">{post.score}</strong>
-        <button className="grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-black/[0.05] hover:text-blue-500 dark:hover:bg-white/[0.08]" onClick={() => onUpdate((current) => ({ ...current, score: current.score - 1 }))}>▼</button>
+        <button
+          className={cn(
+            "grid h-7 w-7 place-items-center rounded-md border text-sm font-black transition",
+            currentVote === -1
+              ? "border-blue-500 bg-blue-500 text-white shadow-sm"
+              : "border-transparent text-muted hover:bg-black/[0.05] hover:text-blue-500 dark:hover:bg-white/[0.08]",
+          )}
+          onClick={() => vote(-1)}
+          aria-pressed={currentVote === -1}
+          title={currentVote === -1 ? "Downvote selecionado" : "Dar downvote"}
+        >
+          ▼
+        </button>
       </div>
       <div className="min-w-0 p-4 md:p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <Badge tone="orange">{post.kind}</Badge>
           <span className="font-bold text-[var(--foreground)]">/{post.category.toLowerCase()}</span>
-          <span>por voce</span>
+          <span>por {post.creatorName}</span>
+          <span>{post.memberIds.length} membro{post.memberIds.length === 1 ? "" : "s"}</span>
           <span>{post.createdAt}</span>
         </div>
         <h3 className="mt-2 break-words text-lg font-black md:text-xl">{post.title}</h3>
@@ -324,8 +445,32 @@ function PostCard({
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onToggle}>{expanded ? "Ocultar Scrum" : "Abrir Scrum"}</Button>
           <Button variant="ghost" size="sm">{post.comments.length} comentarios</Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}>Excluir</Button>
+          {!isCreator && !isMember && !currentRequest && (
+            <Button variant="outline" size="sm" onClick={requestParticipation}>Solicitar participacao</Button>
+          )}
+          {!isCreator && currentRequest && <Badge tone="blue">Solicitacao enviada</Badge>}
+          {!isCreator && isMember && <Badge tone="green">Participando</Badge>}
+          {isCreator && post.requests.length > 0 && <Badge tone="violet">{post.requests.length} solicitacao{post.requests.length === 1 ? "" : "es"}</Badge>}
+          {isCreator && <Button variant="ghost" size="sm" onClick={onDelete}>Excluir</Button>}
         </div>
+
+        {isCreator && post.requests.length > 0 && (
+          <div className="mt-3 space-y-2 rounded-md border border-[var(--border)] bg-black/[0.02] p-3 dark:bg-white/[0.03]">
+            <p className="text-xs font-bold uppercase text-muted">Solicitacoes para participar</p>
+            {post.requests.map((request) => (
+              <div key={request.id} className="flex flex-col gap-2 rounded-md border border-[var(--border)] bg-[var(--card)] p-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold">{request.userName}</p>
+                  <p className="text-xs text-muted">Solicitou {request.createdAt}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="primary" onClick={() => approveRequest(request)}>Aceitar</Button>
+                  <Button size="sm" variant="ghost" onClick={() => rejectRequest(request.id)}>Recusar</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <form className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2" onSubmit={addComment}>
           <input
