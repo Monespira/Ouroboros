@@ -357,7 +357,7 @@ export function AppShell() {
             </div>
             {!sidebarCollapsed && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black">SCRUM CIEE</p>
+                <p className="truncate text-sm font-black">SCRUB</p>
                 <p className="truncate text-xs text-muted">Projetos, forum e colaboracao</p>
               </div>
             )}
