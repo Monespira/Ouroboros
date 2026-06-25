@@ -97,7 +97,7 @@ const demoPosts: ForumPost[] = [
     kind: "Ideia",
     creatorId: "Bruce",
     creatorName: "Bruce Medeiros",
-    memberIds: ["bruce", "bruno", "", "", "", "", "", "", "",""],
+    memberIds: ["bruce", "bruno", "", "", "", "", "", "", "","","", "", "", "", "", "", "", "", "","","", "", "", "", "", "", "", "", "","","", "", "", "", ""],
     requests: [],
     score: 2,
     votes: { bruce: 1, bruno: 1 },
