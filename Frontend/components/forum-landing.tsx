@@ -50,11 +50,12 @@ export type ForumPost = {
 };
 
 export const forumUsers: ForumUser[] = [
+  { id: "bruce", name: "Bruce Medeiros", initials: "BM" },
   { id: "ana", name: "Ana Souza", initials: "AS" },
   { id: "bruno", name: "Bruno Lima", initials: "BL" },
   { id: "carla", name: "Carla Mendes", initials: "CM" },
 ];
-const categories = ["Engenharia", "Produto", "Design", "Marketing", "RH", "Geral"];
+const categories = ["Engenharia", "Projeto", "Design", "Marketing", "RH", "Geral"];
 const kinds: PostKind[] = ["Discussão", "Ideia", "Problema", "Sugestão", "Atualização", "Documentação"];
 const columns: Array<{ id: ScrumStatus; label: string }> = [
   { id: "BACKLOG", label: "Backlog" },

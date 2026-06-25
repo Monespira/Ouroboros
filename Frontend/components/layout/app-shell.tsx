@@ -13,6 +13,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  Repeat,
   Sun,
   Users,
   X,
@@ -90,22 +91,25 @@ const taskColumns: TaskStatus[] = ["Backlog", "A fazer", "Em andamento", "Revis�
 const demoPosts: ForumPost[] = [
   {
     id: "3003",
-    title: "Portal de vagas para estudantes",
-    body: "Criar uma área para estudantes acompanharem candidaturas, etapas e documentos pendentes em um único painel.",
-    category: "Produto",
+    title: "Projeto JAC",
+    body: "Projeto que incentiva jovens aprendizes a desenvolver soluções capazes de gerar impacto positivo na sociedade.",
+    category: "Projeto",
     kind: "Ideia",
-    creatorId: "ana",
-    creatorName: "Ana Souza",
-    memberIds: ["ana", "bruno"],
-    requests: [{ id: "req-3003-carla", userId: "carla", userName: "Carla Mendes", createdAt: "ontem" }],
+    creatorId: "Bruce",
+    creatorName: "Bruce Medeiros",
+    memberIds: ["bruce", "bruno", "", "", "", "", "", "", "",""],
+    requests: [],
     score: 2,
-    votes: { ana: 1, bruno: 1 },
-    comments: ["Priorizar filtros por modalidade.", "Validar fluxo com atendimento."],
-    createdAt: "há 2 dias",
+    votes: { bruce: 1, bruno: 1 },
+    comments: ["Validar as construção do projeto.", "Projeto concluido pessoal!"],
+    createdAt: "há 21 dias",
     tasks: [
-      { id: "task-3003-1", title: "Mapear jornadas de candidatura", status: "DONE", priority: "Alta", points: 5 },
-      { id: "task-3003-2", title: "Desenhar painel de acompanhamento", status: "IN_PROGRESS", priority: "Alta", points: 8 },
-      { id: "task-3003-3", title: "Definir critérios de documentos pendentes", status: "TODO", priority: "Média", points: 3 },
+      { id: "task-3003-1", title: "Criação de Slide", status: "DONE", priority: "Alta", points: 5 },
+      { id: "task-3003-2", title: "Projeto Saúde Mental", status: "DONE", priority: "Alta", points: 8 },
+      { id: "task-3003-3", title: "Projeto Comunicação", status: "DONE", priority: "Média", points: 3 },
+      { id: "task-3003-4", title: "Projeto Conectando", status: "DONE", priority: "Média", points: 3 },
+      { id: "task-3003-5", title: "Café da manha Compartilhado", status: "DONE", priority: "Média", points: 3 },
+      { id: "task-3003-6", title: "Pesquisa de dados", status: "DONE", priority: "Média", points: 3 }
     ],
   },
   {
@@ -151,7 +155,10 @@ const demoPosts: ForumPost[] = [
 ];
 
 const demoMeetings: ProjectMeeting[] = [
-  { id: "meeting-3003-1", projectId: "post-3003", title: "Planning do portal", date: "2026-06-19", time: "09:30", type: "Planning" },
+  { id: "meeting-3003-1", projectId: "post-3003", title: "Definição de metas", date: "2026-06-18", time: "09:30", type: "Planning" },
+  { id: "meeting-3003-2", projectId: "post-3003", title: "Planejamento", date: "2026-06-25", time: "09:30", type: "Daily" },
+  { id: "meeting-3003-3", projectId: "post-3003", title: "Revisão", date: "2026-07-02", time: "09:30", type: "Daily" },
+  { id: "meeting-3003-4", projectId: "post-3003", title: "Finalização", date: "2026-07-09", time: "09:30", type: "Review" },
   { id: "meeting-3002-1", projectId: "post-3002", title: "Review da triagem piloto", date: "2026-06-22", time: "14:00", type: "Review" },
   { id: "meeting-3001-1", projectId: "post-3001", title: "Daily de agenda Scrum", date: "2026-06-23", time: "10:15", type: "Daily" },
 ];
@@ -160,10 +167,10 @@ const demoChatMessages: ChatMessage[] = [
   {
     id: "chat-3003-1",
     projectId: "post-3003",
-    authorId: "ana",
-    authorName: "Ana Souza",
-    authorInitials: "AS",
-    body: "Já deixei as etapas principais no backlog para revisarmos no planning.",
+    authorId: "bruce",
+    authorName: "Bruce Medeiros",
+    authorInitials: "BM",
+    body: "Pessoal, fazer as apresentações do projeto!",
     createdAt: "2026-06-18T09:10:00.000Z",
   },
   {
