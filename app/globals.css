@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+:root { color-scheme:light; --background:#f3ecdd; --foreground:#19150f; --card:#fbf7ed; --muted:#716b60; --border:#d8cebb; --accent:#344a3b; --accent-blue:#405848; --accent-2:#c9973d; --accent-soft:#e8e2d3; --brand-white:#fbf7ed; --success:#52705a; }
+.dark { color-scheme:dark; --background:#18150f; --foreground:#f6f0e4; --card:#24261e; --muted:#bcb5a8; --border:#475044; --accent:#6f8b74; --accent-blue:#8ba18e; --accent-2:#d2a44e; --accent-soft:#30372f; --brand-white:#f6f0e4; --success:#8faf91; }
+* { box-sizing:border-box; }
+body { margin:0; min-width:320px; min-height:100dvh; overflow-x:hidden; isolation:isolate; background:radial-gradient(circle at 82% 4%,color-mix(in srgb,var(--accent-2),transparent 86%),transparent 32rem),radial-gradient(circle at 18% 94%,color-mix(in srgb,var(--accent),transparent 90%),transparent 30rem),var(--background); color:var(--foreground); font-family:Arial,Helvetica,sans-serif; }
+body::before { content:""; position:fixed; z-index:0; inset:0; pointer-events:none; background-image:radial-gradient(circle,color-mix(in srgb,var(--accent),transparent 86%) 1.5px,transparent 1.7px); background-size:52px 52px; mask-image:linear-gradient(to bottom,black,transparent 82%); }
+body::after { content:""; position:fixed; z-index:0; top:50%; left:55%; width:min(1380px,132vw); aspect-ratio:1; pointer-events:none; background:url("/monespira-spiral.svg") center/contain no-repeat; opacity:.16; filter:blur(8px) saturate(.8); transform:translate(-50%,-50%) rotate(0deg) scale(1.08); transform-origin:center; animation:ouroboros-spiral 64s linear infinite; }
+body>* { position:relative; z-index:1; }
+button,input,textarea,select { font:inherit; }
+button { cursor:pointer; }
+::-webkit-scrollbar { width:9px; height:9px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:color-mix(in srgb,var(--accent),transparent 48%); border-radius:999px; }
+.surface { background:color-mix(in srgb,var(--card),transparent 2%); border-color:var(--border); box-shadow:0 18px 50px rgb(8 7 15/.16),inset 0 1px rgb(255 255 255/.025); }
+.text-muted { color:var(--muted); }
+.grid-pattern { background-image:radial-gradient(circle at 86% 18%,color-mix(in srgb,var(--accent),transparent 58%),transparent 16rem),linear-gradient(color-mix(in srgb,var(--accent),transparent 91%) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent),transparent 93%) 1px,transparent 1px); background-size:auto,34px 34px,34px 34px; }
+.brand-gradient { background:radial-gradient(circle at 12% 4%,rgb(210 164 78/.20),transparent 28%),linear-gradient(155deg,#293b30 0%,#344a3b 58%,#202c24 100%); }
+.crm-input { height:2.5rem; min-width:0; border:1px solid var(--border); border-radius:.5rem; background:transparent; padding:0 .75rem; font-size:.875rem; color:var(--foreground); outline:none; }
+.crm-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent),transparent 84%); }
+@keyframes ouroboros-spiral { to { transform:translate(-50%,-50%) rotate(360deg) scale(1.08); } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; } body::after { animation:none; } }
