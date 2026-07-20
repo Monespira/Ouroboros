@@ -1,0 +1,9 @@
+-- Aplicada automaticamente por lib/ai-memory.ts no SQLite local.
+CREATE TABLE conversations (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at TEXT NOT NULL, title TEXT NOT NULL, training_opt_in INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE messages (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL, token_count INTEGER NOT NULL);
+CREATE TABLE summaries (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE, summary_text TEXT NOT NULL, created_at TEXT NOT NULL, through_message_id TEXT NOT NULL);
+CREATE TABLE feedback (id TEXT PRIMARY KEY, message_id TEXT NOT NULL UNIQUE REFERENCES messages(id) ON DELETE CASCADE, user_id TEXT NOT NULL, rating INTEGER NOT NULL, comment TEXT, created_at TEXT NOT NULL);
+CREATE TABLE knowledge_documents (id TEXT PRIMARY KEY, source TEXT NOT NULL, title TEXT NOT NULL, document_type TEXT NOT NULL, reliability TEXT NOT NULL, version INTEGER NOT NULL, content_hash TEXT NOT NULL UNIQUE, superseded_by TEXT REFERENCES knowledge_documents(id), created_at TEXT NOT NULL);
+CREATE TABLE knowledge_chunks (id TEXT PRIMARY KEY, document_id TEXT NOT NULL REFERENCES knowledge_documents(id) ON DELETE CASCADE, chunk_index INTEGER NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL UNIQUE, vector_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL);
+CREATE TABLE retrieval_logs (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE, message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE, chunk_ids_json TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE fine_tune_runs (id TEXT PRIMARY KEY, dataset_path TEXT NOT NULL, example_count INTEGER NOT NULL, status TEXT NOT NULL, approved_by TEXT, approved_at TEXT, provider_job_id TEXT, model_version TEXT, metrics_json TEXT, created_at TEXT NOT NULL);

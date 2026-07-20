@@ -1,0 +1,33 @@
+{
+  "name": "ouroboros-local",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "lint": "tsc --noEmit --incremental false",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test": "tsx --test tests/*.test.ts",
+    "chroma:start": "powershell -ExecutionPolicy Bypass -File scripts/start-chroma.ps1",
+    "knowledge:watch": "tsx scripts/watch-knowledge.ts",
+    "fine-tune:prepare": "tsx scripts/prepare-fine-tuning.ts",
+    "fine-tune:approve": "tsx scripts/approve-fine-tuning.ts"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "next": "^15.3.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^3.10.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/node": "^22.15.29",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "tailwindcss": "^4.1.8",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+.env
+.env*.local
+
+*.tsbuildinfo
+*.log
+data/workspace.json
+data/*.tmp
+data/ai-memory.sqlite*
+data/chroma/
+data/fine-tuning/
