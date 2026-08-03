@@ -9,6 +9,7 @@ body::after { content:""; position:fixed; z-index:0; top:50%; left:55%; width:mi
 body>* { position:relative; z-index:1; }
 button,input,textarea,select { font:inherit; }
 button { cursor:pointer; }
+button:disabled { cursor:not-allowed; }
 ::-webkit-scrollbar { width:9px; height:9px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:color-mix(in srgb,var(--accent),transparent 48%); border-radius:999px; }
@@ -18,5 +19,7 @@ button { cursor:pointer; }
 .brand-gradient { background:radial-gradient(circle at 12% 4%,rgb(210 164 78/.20),transparent 28%),linear-gradient(155deg,#293b30 0%,#344a3b 58%,#202c24 100%); }
 .crm-input { height:2.5rem; min-width:0; border:1px solid var(--border); border-radius:.5rem; background:transparent; padding:0 .75rem; font-size:.875rem; color:var(--foreground); outline:none; }
 .crm-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent),transparent 84%); }
+.crm-input,.crm-input-like { transition:border-color 150ms cubic-bezier(.23,1,.32,1),box-shadow 150ms cubic-bezier(.23,1,.32,1),background-color 150ms ease; }
+@media (hover:hover) and (pointer:fine) { button:not(:disabled):hover { will-change:transform; } }
 @keyframes ouroboros-spiral { to { transform:translate(-50%,-50%) rotate(360deg) scale(1.08); } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; } body::after { animation:none; } }

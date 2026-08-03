@@ -31,7 +31,7 @@ SCRUB_PARTICIPANT_PASSWORD=troque-a-senha-dos-participantes
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_EMBED_MODEL=nomic-embed-text
-CHROMA_URL=http://127.0.0.1:8000
+CHROMA_URL=http://127.0.0.1:8001
 AI_WEB_ALLOWED_HOSTS=www.gov.br,gov.br,ibge.gov.br,www.ibge.gov.br,developer.mozilla.org,nextjs.org,nodejs.org
 ```
 
@@ -74,9 +74,36 @@ Conversas, mensagens, contagem estimada de tokens, resumos e feedback ficam em `
 
 ### RAG evolutivo
 
-O Chroma permanece em `127.0.0.1:8000`; embeddings são gerados localmente com `nomic-embed-text`. Documentos `.md`, `.txt` ou `.json` colocados em `knowledge/inbox` são indexados pelo watcher. Também existe `POST /api/ai/knowledge` para usuários administradores. Chunks são deduplicados, versionados e nunca sobrescritos; contradições devem indicar `supersedesId`. Cada resposta registra os IDs recuperados para auditoria.
+O Chroma permanece em `127.0.0.1:8001`; embeddings são gerados localmente com `nomic-embed-text`. Documentos `.md`, `.txt` ou `.json` colocados em `knowledge/inbox` são indexados pelo watcher. Também existe `POST /api/ai/knowledge` para usuários administradores. Chunks são deduplicados, versionados e nunca sobrescritos; contradições devem indicar `supersedesId`. Cada resposta registra os IDs recuperados para auditoria.
 
 Feedback negativo acompanhado de comentário cria uma correção vetorial marcada como pendente de revisão. Feedback positivo entra no conjunto elegível para fine-tuning somente quando o usuário marcou o opt-in da conversa.
+
+### Perfis dos agentes
+
+Os dez perfis operacionais ficam em `knowledge/agents/agente-*.md`. Eles são carregados diretamente pela rota de IA e definem papel, escopo de decisão, conhecimento essencial, fontes, escalonamento e integração técnica. Os documentos de roteamento, inventário, cobertura e mapeamento complementam Orquestrador, Chefe de Conhecimento e Auditor.
+
+Para reconverter os DOCX mantidos pela Monespira e reindexar os perfis:
+
+```powershell
+python scripts/docx-to-markdown.py "PASTA_DOS_DOCX" knowledge/agents
+npm run knowledge:agents
+```
+
+Os DOCX originais não são alterados.
+
+Para materializar os dez perfis como modelos Ollama locais persistentes:
+
+```powershell
+npm run agents:create-local
+```
+
+Cada modelo `monespira-*:latest` incorpora seu perfil operacional e reutiliza os mesmos pesos do `qwen2.5:7b`. A aplicação escolhe o modelo do especialista roteado. Depois da criação, inferência e memória funcionam sem internet; não há fallback para nuvem.
+
+O `knowledge/documents/monespira-guia-comercial-operacional-v3-2026-07-21.md` foi convertido do PDF oficial de 21/07/2026 e é injetado obrigatoriamente nos agentes de orquestração, conhecimento, auditoria, comercial, financeiro, projetos e operações. Ele substitui o guia v2 em oferta, preços, custos, capacidade e indicadores. Para reindexá-lo no RAG local:
+
+```powershell
+npm run knowledge:business
+```
 
 ### Fine-tuning supervisionado
 

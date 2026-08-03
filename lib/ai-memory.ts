@@ -123,7 +123,10 @@ export function saveFeedback(userId: string, messageId: string, rating: -1 | 1, 
 export function insertKnowledgeDocument(input: { source: string; title: string; documentType: string; reliability: string; content: string; supersedesId?: string }) {
   const contentHash = hashContent(input.content);
   const existing = db.prepare("SELECT id FROM knowledge_documents WHERE content_hash=?").get(contentHash) as { id: string } | undefined;
-  if (existing) return { id: existing.id, duplicate: true };
+  if (existing) {
+    const indexed = db.prepare("SELECT COUNT(*) AS total FROM knowledge_chunks WHERE document_id=?").get(existing.id) as { total:number };
+    return { id: existing.id, duplicate: indexed.total > 0 };
+  }
   const versionRow = db.prepare("SELECT COALESCE(MAX(version),0)+1 AS version FROM knowledge_documents WHERE source=?").get(input.source) as { version: number };
   const id = randomUUID();
   db.prepare("INSERT INTO knowledge_documents(id,source,title,document_type,reliability,version,content_hash,superseded_by,created_at) VALUES(?,?,?,?,?,?,?,?,?)")

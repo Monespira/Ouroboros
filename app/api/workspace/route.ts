@@ -14,7 +14,9 @@ type WorkspaceRecord = {
   data: Record<string, unknown>;
 };
 
-const dataDirectory = path.join(process.cwd(), "data");
+const dataDirectory = process.env.OUROBOROS_DATA_DIR
+  ? path.resolve(process.env.OUROBOROS_DATA_DIR)
+  : path.join(process.cwd(), "data");
 const workspaceFile = path.join(dataDirectory, "workspace.json");
 const emptyWorkspace: WorkspaceRecord = {
   revision: 0,

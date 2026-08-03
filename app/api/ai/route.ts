@@ -6,6 +6,8 @@ import { readSession, sessionCookie } from "@/lib/auth";
 import { formatKnowledge, knowledgeSources, retrieveKnowledge, routeSpecialist, type Specialist } from "@/lib/ai-knowledge";
 import { addMessage, conversationContext, ensureConversation, logRetrieval, saveSummary, tokensSinceLatestSummary } from "@/lib/ai-memory";
 import { ingestRagDocument, retrieveRag } from "@/lib/ai-rag";
+import { agentProfile } from "@/lib/agent-profiles";
+import { agentModel } from "@/lib/agent-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
   }
 
   const routedSpecialist = routeSpecialist(specialist, message);
+  const routedModel = agentModel(routedSpecialist);
   const knowledge = retrieveKnowledge(routedSpecialist, message);
   const ragChunks = await retrieveRag(message);
   const sources = knowledgeSources(knowledge);
@@ -125,7 +128,7 @@ export async function POST(request: Request) {
   const prompt = [
     "Você é um agente local da Monespira. Responda em português do Brasil, de forma objetiva.",
     `Especialista solicitado: ${specialist}. Especialista responsável pela triagem: ${routedSpecialist}.`,
-    specialists[routedSpecialist],
+    `PERFIL OPERACIONAL OFICIAL DO AGENTE:\n${agentProfile(routedSpecialist)}`,
     "Use primeiro a base documental interna abaixo. Não misture regras de outros domínios, não extrapole lacunas e cite as fontes internas como [FONTE N] junto das afirmações relevantes.",
     "Preserve literalmente nomes, promessas, preços e demais textos oficiais recuperados. Não proponha alterá-los, complementá-los ou promovê-los a nova versão sem pedido explícito e aprovação humana.",
     "Quando uma fonte tiver ALERTA, preserve-o na resposta. Preços, custos, normas e minutas podem ficar desatualizados: trate-os como referência versionada e exija confirmação antes de compromisso.",
@@ -145,7 +148,7 @@ export async function POST(request: Request) {
     const response = await fetch(ollamaEndpoint(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: process.env.OLLAMA_MODEL || "qwen2.5:7b", prompt, stream: false, options: { temperature: 0.2, num_predict: 1200 } }),
+      body: JSON.stringify({ model: routedModel, prompt, stream: false, options: { temperature: 0.2, num_predict: 1200 } }),
       signal: AbortSignal.timeout(90_000),
       cache: "no-store",
     });
@@ -158,7 +161,7 @@ export async function POST(request: Request) {
       const summaryResult = await summaryResponse.json().catch(() => null) as { response?: string } | null;
       if (summaryResponse.ok && summaryResult?.response) saveSummary(conversationId, summaryResult.response);
     }
-    return json({ answer, messageId: assistantMessage.id, conversationId, model: process.env.OLLAMA_MODEL || "qwen2.5:7b", referenceUrl: reference?.url || null, requestedSpecialist: specialist, routedSpecialist, sources: [...sources, ...ragChunks.map((chunk) => ({ id: chunk.id, source: chunk.source, pages: "memória RAG", warning: chunk.reliability }))] });
+    return json({ answer, messageId: assistantMessage.id, conversationId, model: routedModel, referenceUrl: reference?.url || null, requestedSpecialist: specialist, routedSpecialist, sources: [...sources, ...ragChunks.map((chunk) => ({ id: chunk.id, source: chunk.source, pages: "memória RAG", warning: chunk.reliability }))] });
   } catch {
     return json({ error: "Ollama local indisponível. Inicie o serviço e confirme o modelo configurado." }, 503);
   }

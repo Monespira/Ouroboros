@@ -10,7 +10,7 @@ export function Button({ className, variant = "secondary", size = "md", ...props
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition duration-150 active:scale-[.98]",
+        "inline-flex items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition-[transform,background-color,border-color,color,box-shadow] duration-150 [transition-timing-function:cubic-bezier(.23,1,.32,1)] active:scale-[.97]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-2)]",
         variant === "primary" &&
           "border-transparent bg-[var(--accent)] text-[var(--brand-white)] shadow-lg shadow-violet-950/20 hover:bg-[var(--accent-blue)]",

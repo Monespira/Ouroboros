@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { insertKnowledgeDocument, recordKnowledgeChunk } from "@/lib/ai-memory";
 
-const chromaBase = process.env.CHROMA_URL || "http://127.0.0.1:8000";
+const chromaBase = process.env.CHROMA_URL || "http://127.0.0.1:8001";
 const collectionName = "monespira_knowledge";
 const collectionRoot = `${chromaBase}/api/v2/tenants/default_tenant/databases/default_database/collections`;
 

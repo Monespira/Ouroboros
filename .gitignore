@@ -14,3 +14,5 @@ data/*.tmp
 data/ai-memory.sqlite*
 data/chroma/
 data/fine-tuning/
+data/ollama-agents/
+graphify-out/

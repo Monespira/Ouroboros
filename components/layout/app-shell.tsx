@@ -1,21 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   CalendarDays,
   Bot,
   BriefcaseBusiness,
-  Building2,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  ContactRound,
   Folder,
-  Gauge,
-  HandCoins,
   Landmark,
-  ListTodo,
   Megaphone,
   Menu,
   MessageSquare,
@@ -36,7 +32,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn, createClientId } from "@/lib/utils";
 import type { AuthUser } from "@/lib/auth";
-import { CrmWorkspace, type CrmExtras } from "@/components/crm/crm-workspace";
+import type { CrmExtras } from "@/components/crm/crm-workspace";
+
+const CrmWorkspace = dynamic(
+  () => import("@/components/crm/crm-workspace").then(module => module.CrmWorkspace),
+  { loading: () => <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-sm text-muted">Carregando CRM local…</div> },
+);
 
 type ViewId = "forum" | "projects" | "tasks" | "calendar" | "crm" | "ai";
 type ProjectStatus = "Planejamento" | "Ativo" | "Pausado" | "Concluído";
@@ -98,7 +99,7 @@ const views: Array<{
   { id: "projects", label: "Projetos", description: "Carteira de projetos", icon: Folder },
   { id: "tasks", label: "Tarefas", description: "Backlog operacional", icon: ClipboardList },
   { id: "calendar", label: "Calendário", description: "Agenda de reuniões", icon: CalendarDays },
-  { id: "crm", label: "CRM", description: "Leads e oportunidades", icon: BriefcaseBusiness },
+  { id: "crm", label: "CRM", description: "Clientes, propostas e faturamento", icon: BriefcaseBusiness },
   { id: "ai", label: "IAs locais", description: "Agentes privados da Monespira", icon: Bot },
 ];
 
@@ -366,10 +367,9 @@ export function AppShell({ authenticatedUser }: { authenticatedUser: AuthUser })
   useEffect(() => {
     if (!storageReady) return;
     const data: SharedWorkspace = { posts, meetings, chatMessages, completedProjectIds, crmLeads, crmAccounts, crmContacts, crmOpportunities, crmActivities, crmExtras };
-    const serialized = JSON.stringify(data);
-    if (serialized === lastSyncedRef.current) return;
-
     const timer = window.setTimeout(async () => {
+      const serialized = JSON.stringify(data);
+      if (serialized === lastSyncedRef.current) return;
       if (savingRef.current) return;
       savingRef.current = true;
       try {
@@ -394,7 +394,7 @@ export function AppShell({ authenticatedUser }: { authenticatedUser: AuthUser })
       } finally {
         savingRef.current = false;
       }
-    }, 400);
+    }, 750);
     return () => window.clearTimeout(timer);
   }, [chatMessages, completedProjectIds, crmAccounts, crmActivities, crmContacts, crmLeads, crmOpportunities, crmExtras, meetings, posts, storageReady]);
 
@@ -406,7 +406,7 @@ export function AppShell({ authenticatedUser }: { authenticatedUser: AuthUser })
       if (!response.ok) return;
       const workspace = (await response.json()) as WorkspaceResponse;
       if (workspace.revision > revisionRef.current) applyWorkspace(workspace);
-    }, 2500);
+    }, 8000);
     return () => window.clearInterval(timer);
   }, [storageReady]);
 
@@ -1608,102 +1608,6 @@ function ChatView({
   );
 }
 
-const crmStages: CrmStage[] = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Ganho", "Perdido"];
-type CrmTab = "overview" | "leads" | "accounts" | "contacts" | "opportunities" | "activities";
-const crmTabs: Array<{ id: CrmTab; label: string; hint: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = [
-  { id:"overview", label:"Visão geral", hint:"Painel comercial", icon:Gauge },
-  { id:"leads", label:"Leads", hint:"Novos contatos", icon:Users },
-  { id:"accounts", label:"Contas", hint:"Empresas ativas", icon:Building2 },
-  { id:"contacts", label:"Contatos", hint:"Rede de decisores", icon:ContactRound },
-  { id:"opportunities", label:"Oportunidades", hint:"Pipeline de vendas", icon:HandCoins },
-  { id:"activities", label:"Atividades", hint:"Agenda e follow-up", icon:ListTodo },
-];
-
-function CrmView({ leads, accounts, contacts, opportunities, activities, onLeadsChange, onAccountsChange, onContactsChange, onOpportunitiesChange, onActivitiesChange }: {
-  leads: CrmLead[]; accounts: CrmAccount[]; contacts: CrmContact[]; opportunities: CrmOpportunity[]; activities: CrmActivity[];
-  onLeadsChange: React.Dispatch<React.SetStateAction<CrmLead[]>>; onAccountsChange: React.Dispatch<React.SetStateAction<CrmAccount[]>>;
-  onContactsChange: React.Dispatch<React.SetStateAction<CrmContact[]>>; onOpportunitiesChange: React.Dispatch<React.SetStateAction<CrmOpportunity[]>>;
-  onActivitiesChange: React.Dispatch<React.SetStateAction<CrmActivity[]>>;
-}) {
-  const [tab, setTab] = useState<CrmTab>("overview");
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [draft, setDraft] = useState({ company:"", contact:"", email:"", value:"", nextAction:"", source:"Indicação" });
-  const [activityDraft, setActivityDraft] = useState({ subject:"", type:"Tarefa" as CrmActivity["type"], dueDate:"", relatedId:"" });
-  const openOpportunities = opportunities.filter((item) => !["Ganho", "Perdido"].includes(item.stage));
-  const pipelineValue = openOpportunities.reduce((total, item) => total + item.value, 0);
-  const weightedForecast = openOpportunities.reduce((total, item) => total + item.value * item.probability / 100, 0);
-  const wonValue = opportunities.filter((item) => item.stage === "Ganho").reduce((total, item) => total + item.value, 0);
-
-  function createLead(event: React.FormEvent) {
-    event.preventDefault(); if (!draft.company.trim() || !draft.contact.trim()) return;
-    onLeadsChange((current) => [{ id:createClientId(), company:draft.company.trim(), contact:draft.contact.trim(), email:draft.email.trim(), value:Math.max(0,Number(draft.value)||0), status:"Novo", source:draft.source, owner:"Equipe", nextAction:draft.nextAction.trim() }, ...current]);
-    setDraft({ company:"", contact:"", email:"", value:"", nextAction:"", source:"Indicação" }); setOpen(false);
-  }
-  function convertLead(lead: CrmLead) {
-    const account = accounts.find((item) => item.name.toLowerCase() === lead.company.toLowerCase()) ?? { id:createClientId(), name:lead.company, owner:lead.owner, industry:"Não informado", website:"" };
-    if (!accounts.some((item) => item.id === account.id)) onAccountsChange((current) => [account, ...current]);
-    onContactsChange((current) => [{ id:createClientId(), accountId:account.id, name:lead.contact, email:lead.email, phone:"", role:"Contato principal" }, ...current]);
-    onOpportunitiesChange((current) => [{ id:createClientId(), accountId:account.id, name:`Oportunidade · ${lead.company}`, value:lead.value, stage:"Qualificação", probability:25, closeDate:"", owner:lead.owner, nextAction:lead.nextAction }, ...current]);
-    onLeadsChange((current) => current.filter((item) => item.id !== lead.id)); setTab("opportunities");
-  }
-  function createActivity(event: React.FormEvent) {
-    event.preventDefault(); if (!activityDraft.subject.trim()) return;
-    onActivitiesChange((current) => [{ id:createClientId(), relatedId:activityDraft.relatedId, subject:activityDraft.subject.trim(), type:activityDraft.type, dueDate:activityDraft.dueDate, completed:false, owner:"Equipe" }, ...current]);
-    setActivityDraft({ subject:"", type:"Tarefa", dueDate:"", relatedId:"" });
-  }
-  const filteredLeads = leads.filter((lead) => `${lead.company} ${lead.contact} ${lead.email}`.toLowerCase().includes(query.toLowerCase()));
-
-  const tabCounts: Record<CrmTab, number | null> = { overview:null, leads:leads.length, accounts:accounts.length, contacts:contacts.length, opportunities:openOpportunities.length, activities:activities.filter((item)=>!item.completed).length };
-
-  return <div className="crm-workspace grid overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--accent)] shadow-[0_28px_80px_rgba(25,21,15,.24)] lg:grid-cols-[260px_minmax(0,1fr)]">
-    <aside className="crm-menu brand-gradient flex min-w-0 flex-col border-b border-white/10 p-3 text-white lg:min-h-[650px] lg:border-b-0 lg:border-r lg:p-4">
-      <div className="hidden px-3 pb-5 pt-2 lg:block">
-        <span className="text-[10px] font-bold uppercase tracking-[.24em] text-[#e6bd6b]">Central comercial</span>
-        <h2 className="mt-2 text-xl font-black tracking-[-.03em]">CRM Workspace</h2>
-        <p className="mt-1 text-xs leading-5 text-white/55">Relacionamentos, receita e próximos passos em um só lugar.</p>
-      </div>
-      <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-1 lg:flex-col lg:overflow-visible" role="tablist" aria-label="Áreas do CRM">
-        {crmTabs.map((item) => { const Icon=item.icon; const active=tab===item.id; const count=tabCounts[item.id]; return <button key={item.id} role="tab" aria-selected={active} onClick={() => setTab(item.id)} className={cn("group flex min-w-[170px] shrink-0 items-center gap-3 rounded-xl border px-3 py-3 text-left transition duration-200 active:scale-[.98] lg:min-w-0",active?"border-white/25 bg-white/12 text-white shadow-[inset_3px_0_0_#d2a44e,0_12px_30px_rgba(25,21,15,.24)]":"border-transparent text-white/55 hover:border-white/10 hover:bg-white/[.06] hover:text-white")}>
-          <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition",active?"border-[#e6bd6b]/60 bg-[var(--accent-2)] text-[#19150f] shadow-[0_8px_24px_rgba(201,151,61,.28)]":"border-white/10 bg-white/[.04] text-white/45 group-hover:text-[#e6bd6b]")}><Icon size={17}/></span>
-          <span className="min-w-0 flex-1"><strong className="block truncate text-sm">{item.label}</strong><span className={cn("mt-0.5 block truncate text-[11px]",active?"text-white/60":"text-white/35")}>{item.hint}</span></span>
-          {count!==null&&<span className={cn("rounded-full px-2 py-0.5 text-[10px] font-black tabular-nums",active?"bg-[var(--accent-2)]/20 text-[#f0cc83]":"bg-white/[.06] text-white/35")}>{count}</span>}
-        </button>; })}
-      </nav>
-      <div className="mt-4 hidden rounded-xl border border-[#e6bd6b]/20 bg-white/[.06] p-3 lg:block">
-        <div className="flex items-center justify-between text-xs"><span className="text-white/55">Pipeline aberto</span><HandCoins size={15} className="text-[#e6bd6b]"/></div>
-        <strong className="mt-2 block text-lg font-black tracking-tight text-white">{formatCurrency(pipelineValue)}</strong>
-        <button type="button" onClick={()=>{setTab("leads");setOpen(true);}} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-2)] px-3 py-2.5 text-xs font-black text-[#19150f] shadow-[0_10px_24px_rgba(201,151,61,.24)] transition hover:brightness-110 active:translate-y-px"><Plus size={14}/>Adicionar lead</button>
-      </div>
-    </aside>
-
-    <section className="min-w-0 space-y-5 bg-[linear-gradient(145deg,var(--card),var(--accent-soft))] p-4 text-[var(--foreground)] sm:p-5 lg:p-7">
-
-    {tab === "overview" && <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><ProjectInfo label="Leads" value={leads.length.toString()} /><ProjectInfo label="Pipeline aberto" value={formatCurrency(pipelineValue)} /><ProjectInfo label="Previsão ponderada" value={formatCurrency(weightedForecast)} /><ProjectInfo label="Receita ganha" value={formatCurrency(wonValue)} /></div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)]"><Card><CardHeader><h3 className="font-black">Pipeline por etapa</h3></CardHeader><CardContent className="space-y-4">{crmStages.map((stage) => { const stageItems=opportunities.filter((item)=>item.stage===stage); const value=stageItems.reduce((sum,item)=>sum+item.value,0); return <div key={stage}><div className="mb-1 flex justify-between text-sm"><strong>{stage}</strong><span className="text-muted">{stageItems.length} · {formatCurrency(value)}</span></div><div className="h-2 overflow-hidden rounded-full bg-[var(--accent-soft)]"><div className="h-full rounded-full bg-[var(--accent)]" style={{width:`${pipelineValue?Math.min(100,value/pipelineValue*100):0}%`}} /></div></div>; })}</CardContent></Card>
-      <Card><CardHeader><h3 className="font-black">Próximas atividades</h3></CardHeader><CardContent className="space-y-2">{activities.filter((item)=>!item.completed).slice(0,6).map((item)=><div key={item.id} className="rounded-lg border border-[var(--border)] p-3"><strong className="text-sm">{item.subject}</strong><p className="mt-1 text-xs text-muted">{item.type}{item.dueDate?` · ${formatDate(item.dueDate)}`:""}</p></div>)}{!activities.some((item)=>!item.completed)&&<p className="text-sm text-muted">Nenhuma atividade pendente.</p>}</CardContent></Card></div>
-    </div>}
-
-    {tab === "leads" && <div className="space-y-4"><div className="flex flex-wrap gap-2"><input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Buscar leads" className="h-10 min-w-64 flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 text-sm" /><Button variant="primary" onClick={()=>setOpen((value)=>!value)}><Plus size={16}/>Novo lead</Button></div>
-      {open&&<Card><CardContent><form className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" onSubmit={createLead}><input required placeholder="Empresa" value={draft.company} onChange={(e)=>setDraft((v)=>({...v,company:e.target.value}))} className="crm-input"/><input required placeholder="Contato" value={draft.contact} onChange={(e)=>setDraft((v)=>({...v,contact:e.target.value}))} className="crm-input"/><input type="email" placeholder="E-mail" value={draft.email} onChange={(e)=>setDraft((v)=>({...v,email:e.target.value}))} className="crm-input"/><input type="number" min="0" placeholder="Valor potencial" value={draft.value} onChange={(e)=>setDraft((v)=>({...v,value:e.target.value}))} className="crm-input"/><select value={draft.source} onChange={(e)=>setDraft((v)=>({...v,source:e.target.value}))} className="crm-input"><option>Indicação</option><option>Site</option><option>Evento</option><option>Prospecção</option><option>Campanha</option></select><input placeholder="Próxima ação" value={draft.nextAction} onChange={(e)=>setDraft((v)=>({...v,nextAction:e.target.value}))} className="crm-input md:col-span-2"/><Button type="submit" variant="primary">Salvar lead</Button></form></CardContent></Card>}
-      <Card><div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="border-b border-[var(--border)] bg-[var(--accent-soft)]/45 text-xs uppercase text-muted"><tr><th className="p-3">Lead</th><th>Empresa</th><th>Status</th><th>Origem</th><th>Valor potencial</th><th>Próxima ação</th><th className="pr-3">Ações</th></tr></thead><tbody className="divide-y divide-[var(--border)]">{filteredLeads.map((lead)=><tr key={lead.id}><td className="p-3"><strong>{lead.contact}</strong><div className="text-xs text-muted">{lead.email}</div></td><td>{lead.company}</td><td><select value={lead.status??"Novo"} onChange={(e)=>onLeadsChange((current)=>current.map((item)=>item.id===lead.id?{...item,status:e.target.value as CrmLead["status"]}:item))} className="rounded-md border border-[var(--border)] bg-[var(--card)] p-2"><option>Novo</option><option>Em contato</option><option>Qualificado</option><option>Não qualificado</option></select></td><td>{lead.source||"Não informado"}</td><td>{formatCurrency(lead.value)}</td><td>{lead.nextAction||"—"}</td><td className="pr-3"><div className="flex gap-2"><Button size="sm" variant="primary" onClick={()=>convertLead(lead)}>Converter</Button><Button size="sm" variant="danger" onClick={()=>onLeadsChange((current)=>current.filter((item)=>item.id!==lead.id))}>Excluir</Button></div></td></tr>)}</tbody></table>{filteredLeads.length===0&&<p className="p-8 text-center text-sm text-muted">Nenhum lead encontrado.</p>}</div></Card>
-    </div>}
-
-    {tab === "accounts" && <CrmSimpleTable title="Contas" headers={["Conta","Setor","Responsável","Site"]} rows={accounts.map((account)=>[account.name,account.industry,account.owner,account.website||"—"])} empty="Converta um lead qualificado para criar a primeira conta." />}
-    {tab === "contacts" && <CrmSimpleTable title="Contatos" headers={["Contato","Conta","Função","E-mail","Telefone"]} rows={contacts.map((contact)=>[contact.name,accounts.find((a)=>a.id===contact.accountId)?.name||"—",contact.role,contact.email||"—",contact.phone||"—"])} empty="Os contatos são criados durante a conversão de leads." />}
-
-    {tab === "opportunities" && <div className="grid gap-3 overflow-x-auto xl:grid-cols-6">{crmStages.map((stage)=><div key={stage} className="min-w-[245px] rounded-xl border border-[var(--border)] bg-[var(--accent-soft)]/35 p-2"><div className="mb-2 flex items-center justify-between px-1"><strong className="text-sm">{stage}</strong><Badge>{opportunities.filter((item)=>item.stage===stage).length}</Badge></div><div className="space-y-2">{opportunities.filter((item)=>item.stage===stage).map((opportunity)=><Card key={opportunity.id} className="shadow-none"><CardContent className="space-y-3 p-3"><div><strong className="text-sm">{opportunity.name}</strong><p className="mt-1 text-xs text-muted">{accounts.find((item)=>item.id===opportunity.accountId)?.name}</p></div><p className="font-black text-[var(--accent)]">{formatCurrency(opportunity.value)}</p><div className="flex justify-between text-xs text-muted"><span>{opportunity.probability}%</span><span>{opportunity.closeDate?formatDate(opportunity.closeDate):"Sem previsão"}</span></div><select value={opportunity.stage} onChange={(e)=>onOpportunitiesChange((current)=>current.map((item)=>item.id===opportunity.id?{...item,stage:e.target.value as CrmStage,probability:stageProbability(e.target.value as CrmStage)}:item))} className="w-full rounded-md border border-[var(--border)] bg-[var(--card)] p-2 text-xs">{crmStages.map((item)=><option key={item}>{item}</option>)}</select></CardContent></Card>)}</div></div>)}</div>}
-
-    {tab === "activities" && <div className="space-y-4"><Card><CardContent><form className="grid gap-3 md:grid-cols-2 xl:grid-cols-5" onSubmit={createActivity}><input required placeholder="Assunto" value={activityDraft.subject} onChange={(e)=>setActivityDraft((v)=>({...v,subject:e.target.value}))} className="crm-input"/><select value={activityDraft.type} onChange={(e)=>setActivityDraft((v)=>({...v,type:e.target.value as CrmActivity["type"]}))} className="crm-input"><option>Tarefa</option><option>Reunião</option><option>Ligação</option></select><select value={activityDraft.relatedId} onChange={(e)=>setActivityDraft((v)=>({...v,relatedId:e.target.value}))} className="crm-input"><option value="">Sem registro relacionado</option><optgroup label="Contas">{accounts.map((item)=><option key={item.id} value={item.id}>{item.name}</option>)}</optgroup><optgroup label="Oportunidades">{opportunities.map((item)=><option key={item.id} value={item.id}>{item.name}</option>)}</optgroup></select><input type="date" value={activityDraft.dueDate} onChange={(e)=>setActivityDraft((v)=>({...v,dueDate:e.target.value}))} className="crm-input"/><Button type="submit" variant="primary">Criar atividade</Button></form></CardContent></Card><Card><CardContent className="space-y-2">{activities.map((activity)=><label key={activity.id} className="flex items-center gap-3 rounded-lg border border-[var(--border)] p-3"><input type="checkbox" checked={activity.completed} onChange={(e)=>onActivitiesChange((current)=>current.map((item)=>item.id===activity.id?{...item,completed:e.target.checked}:item))}/><span className="flex-1"><strong className={cn("text-sm",activity.completed&&"line-through opacity-60")}>{activity.subject}</strong><span className="ml-2 text-xs text-muted">{activity.type}{activity.dueDate?` · ${formatDate(activity.dueDate)}`:""}{activity.relatedId?` · ${accounts.find((item)=>item.id===activity.relatedId)?.name||opportunities.find((item)=>item.id===activity.relatedId)?.name||"Registro"}`:""}</span></span></label>)}{activities.length===0&&<p className="py-8 text-center text-sm text-muted">Nenhuma atividade cadastrada.</p>}</CardContent></Card></div>}
-    </section>
-  </div>;
-}
-
-function CrmSimpleTable({ title, headers, rows, empty }: { title:string; headers:string[]; rows:string[][]; empty:string }) {
-  return <Card><CardHeader><h3 className="font-black">{title}</h3></CardHeader><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="border-b border-[var(--border)] text-xs uppercase text-muted"><tr>{headers.map((header)=><th key={header} className="p-3">{header}</th>)}</tr></thead><tbody className="divide-y divide-[var(--border)]">{rows.map((row,index)=><tr key={index}>{row.map((cell,cellIndex)=><td key={cellIndex} className="p-3">{cell}</td>)}</tr>)}</tbody></table>{rows.length===0&&<p className="p-8 text-center text-sm text-muted">{empty}</p>}</div></Card>;
-}
-function stageProbability(stage: CrmStage) { return ({ "Prospecção":10, "Qualificação":25, "Proposta":50, "Negociação":75, "Ganho":100, "Perdido":0 } as Record<string,number>)[stage] ?? 10; }
 
 type LocalSpecialistId = "sales" | "marketing" | "finance" | "projects" | "operations" | "orchestrator" | "knowledge" | "auditor" | "brand" | "security";
 
@@ -1785,8 +1689,6 @@ function LocalAgentsView({ context }: { context: Record<string, number> }) {
     </form>{error&&<p role="alert" className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">{error}</p>}{answer&&<div className="mt-4"><div className="mb-2 flex flex-wrap items-center gap-2"><Badge tone="green">{model||"Ollama"}</Badge><span className="text-xs text-muted">Resposta gerada localmente</span>{routedSpecialist&&<Badge>Triagem: {localSpecialistOptions.find((item)=>item.id===routedSpecialist)?.label||routedSpecialist}</Badge>}</div><div className="whitespace-pre-wrap rounded-lg border border-[var(--border)] bg-black/[.02] p-4 text-sm leading-6 dark:bg-white/[.03]">{answer}</div><div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={()=>void sendFeedback(1)}>👍 Útil</Button><Button size="sm" variant="outline" onClick={()=>void sendFeedback(-1)}>👎 Corrigir</Button><input value={feedbackComment} onChange={(event)=>setFeedbackComment(event.target.value)} maxLength={2000} placeholder="Comentário opcional; obrigatório para ensinar uma correção" className="crm-input min-w-64 flex-1" /></div>{feedbackStatus&&<p className="mt-2 text-xs text-muted">{feedbackStatus}</p>}{documentSources.length>0&&<div className="mt-3 rounded-lg border border-[var(--border)] p-3"><strong className="text-xs uppercase tracking-wide">Base documental selecionada</strong><ul className="mt-2 space-y-2 text-xs text-muted">{documentSources.map((source)=><li key={source.id}><span className="font-semibold text-[var(--foreground)]">{source.source}</span> · páginas {source.pages}{source.warning&&<span className="mt-1 block text-amber-700 dark:text-amber-300">{source.warning}</span>}</li>)}</ul></div>}</div>}</CardContent></Card></div>
   </div>;
 }
-
-function formatCurrency(value: number) { return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL", maximumFractionDigits:0 }).format(value); }
 
 function MiniStat({ label, value }: { label: string; value: number }) {
   return (

@@ -11,8 +11,12 @@
     "test": "tsx --test tests/*.test.ts",
     "chroma:start": "powershell -ExecutionPolicy Bypass -File scripts/start-chroma.ps1",
     "knowledge:watch": "tsx scripts/watch-knowledge.ts",
+    "knowledge:agents": "tsx scripts/ingest-agent-docs.ts",
+    "knowledge:business": "tsx scripts/ingest-business-docs.ts",
+    "agents:create-local": "tsx scripts/create-local-agent-models.ts",
     "fine-tune:prepare": "tsx scripts/prepare-fine-tuning.ts",
-    "fine-tune:approve": "tsx scripts/approve-fine-tuning.ts"
+    "fine-tune:approve": "tsx scripts/approve-fine-tuning.ts",
+    "crm:migrate": "tsx scripts/migrate-crm-domain.ts"
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
